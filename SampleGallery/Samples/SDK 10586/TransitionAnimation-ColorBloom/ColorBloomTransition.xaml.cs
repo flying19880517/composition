@@ -15,10 +15,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
+
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI;
 
 namespace CompositionSampleGallery
 {
@@ -28,16 +31,17 @@ namespace CompositionSampleGallery
     public sealed partial class ColorBloomTransition : SamplePage
     {
 
-        public static string    StaticSampleName    { get { return "Color bloom"; } }
-        public override string  SampleName          { get { return StaticSampleName; } }
-        public override string  SampleDescription   { get { return "Demonstrates how to use Visuals and Animations to create a color bloom effect during page or state transitions. Click on one of the items in the Pivot control to trigger the color bloom effect."; } }
-        public override string  SampleCodeUri       { get { return "http://go.microsoft.com/fwlink/p/?LinkID=761176"; } }
+        public static string    StaticSampleName => "Color bloom"; 
+        public override string  SampleName => StaticSampleName; 
+        public static string    StaticSampleDescription => "Demonstrates how to use Visuals and Animations to create a color bloom effect during page or state transitions. Click on one of the items in the Pivot control to trigger the color bloom effect."; 
+        public override string  SampleDescription => StaticSampleDescription; 
+        public override string  SampleCodeUri => "http://go.microsoft.com/fwlink/p/?LinkID=761176"; 
 
         #region Private member variables
 
         PropertySet _colorsByPivotItem;
         ColorBloomTransitionHelper transition;
-        Queue<PivotItem> pendingTransitions = new Queue<PivotItem>();
+        Queue<AppBarButton> pendingTransitions = new Queue<AppBarButton>();
         #endregion
 
 
@@ -65,10 +69,10 @@ namespace CompositionSampleGallery
         private void InitializeColors()
         {
             _colorsByPivotItem = new PropertySet();
-            _colorsByPivotItem.Add("Pictures", Windows.UI.Colors.Orange);
-            _colorsByPivotItem.Add("ContactInfo", Windows.UI.Colors.Lavender);
-            _colorsByPivotItem.Add("Download", Windows.UI.Colors.GreenYellow);
-            _colorsByPivotItem.Add("Comment", Windows.UI.Colors.DeepSkyBlue);
+            _colorsByPivotItem.Add("Pictures", Colors.Orange);
+            _colorsByPivotItem.Add("ContactInfo", Colors.Lavender);
+            _colorsByPivotItem.Add("Download", Colors.GreenYellow);
+            _colorsByPivotItem.Add("Comment", Colors.DeepSkyBlue);
         }
 
 
@@ -97,7 +101,7 @@ namespace CompositionSampleGallery
         /// This is achieved by creating a circular solid colored visual directly underneath the
         /// Pivot header which was clicked, and animating its scale so that it floods a designated bounding box. 
         /// </summary>
-        private void Header_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void Header_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
             var header = sender as AppBarButton;
 
@@ -111,19 +115,24 @@ namespace CompositionSampleGallery
                 Y = headerPosition.Y
             };
 
-            var finalBounds = Window.Current.Bounds;  // maps to the bounds of the current window
-
+            var finalBounds = new Windows.Foundation.Rect()
+            {
+                Width = this.ActualSize.X,
+                Height = this.ActualSize.Y,
+                X = 0,
+                Y = 0
+            };
 
             transition.Start((Windows.UI.Color)_colorsByPivotItem[header.Name],  // the color for the circlular bloom
                                  initialBounds,                                  // the initial size and position
                                        finalBounds);                             // the area to fill over the animation duration
 
             // Add item to queue of transitions
-            var pivotItem = (PivotItem)rootPivot.Items.Single(i => ((AppBarButton)((PivotItem)i).Header).Name.Equals(header.Name));
+            var pivotItem = (AppBarButton)rootGridView.Items.Single(i => ((AppBarButton)i).Name.Equals(header.Name));
             pendingTransitions.Enqueue(pivotItem);
 
             // Make the content visible immediately, when first clicked. Subsequent clicks will be handled by Pivot Control
-            var content = (FrameworkElement)pivotItem.Content;
+            var content = (FrameworkElement)pivotItem;
             if (content.Visibility == Visibility.Collapsed)
             {
                 content.Visibility = Visibility.Visible;
@@ -141,7 +150,7 @@ namespace CompositionSampleGallery
             
             // now remember, that bloom animation was just transitional
             // so we need to explicitly set the correct color as background of the layout panel
-            var header = (AppBarButton)item.Header;
+            var header = (AppBarButton)item;
             UICanvas.Background = new SolidColorBrush((Windows.UI.Color)_colorsByPivotItem[header.Name]);
         }
 
@@ -166,7 +175,7 @@ namespace CompositionSampleGallery
         /// </summary>
         private void ColorBloomTransition_Unloaded(object sender, RoutedEventArgs e)
         {
-            transition.DisposeSurfaces();
+            transition.Dispose();
         }
 
         #endregion

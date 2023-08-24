@@ -12,18 +12,18 @@
 //
 //*********************************************************
 
-using CompositionSampleGallery.Shared;
 using SamplesCommon;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Numerics;
-using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.UI.Composition;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Hosting;
-using Windows.UI.Xaml.Input;
+using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Input;
+using CompositionSampleGallery.Shared;
 
 namespace CompositionSampleGallery
 {
@@ -38,10 +38,11 @@ namespace CompositionSampleGallery
             this.InitializeComponent();
         }
 
-        public static string        StaticSampleName    { get { return "Pointer Enter/Exit Effects"; } }
-        public override string      SampleName          { get { return StaticSampleName; } }
-        public override string      SampleDescription   { get { return "Demonstrates how to apply effects to ListView items that respond to mouse enter, mouse leave, and mouse position. Hover your mouse cursor over a ListView item to trigger the selected effect."; } }
-        public override string      SampleCodeUri       { get { return "http://go.microsoft.com/fwlink/p/?LinkID=761167"; } }
+        public static string        StaticSampleName => "Pointer Enter/Exit Effects"; 
+        public override string      SampleName => StaticSampleName;
+        public static string        StaticSampleDescription => "Demonstrates how to apply effects to ListView items that respond to mouse enter, mouse leave, and mouse position. Hover your mouse cursor over a ListView item to trigger the selected effect."; 
+        public override string      SampleDescription => StaticSampleDescription; 
+        public override string      SampleCodeUri => "http://go.microsoft.com/fwlink/p/?LinkID=761167"; 
 
         public LocalDataSource Model
         {
@@ -66,7 +67,7 @@ namespace CompositionSampleGallery
             EffectSelection.ItemsSource = effectList;
             EffectSelection.SelectedIndex = 0;
 
-            ThumbnailList.ItemsSource = Model.Items;
+            ThumbnailList.ItemsSource = ThumbnailList.ItemsSource = Model.AggregateDataSources(new ObservableCollection<Thumbnail>[] { Model.Landscapes, Model.Nature });
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -136,12 +137,12 @@ namespace CompositionSampleGallery
 
         private async void ApplyEffect(CompositionImage image)
         {
-            Task<CompositionDrawingSurface> task = null;
+            ManagedSurface effectSurface = null;
 
             // If we've requested a load time effect input, kick it off now
             if (_currentTechnique.LoadTimeEffectHandler != null)
             {
-                task = SurfaceLoader.LoadFromUri(image.Source, Size.Empty, _currentTechnique.LoadTimeEffectHandler);
+                effectSurface = await ImageLoader.Instance.LoadFromUriAsync(image.Source, Size.Empty, _currentTechnique.LoadTimeEffectHandler);
             }
 
             // Create the new brush, set the inputs and set it on the image
@@ -149,13 +150,12 @@ namespace CompositionSampleGallery
             brush.SetSourceParameter("ImageSource", image.SurfaceBrush);
             image.Brush = brush;
 
-            // If we've got an active task, wait for it to finish
-            if (task != null)
+            // Set the effect surface as input
+            if (effectSurface != null)
             {
-                CompositionDrawingSurface effectSurface = await task;
-
-                // Set the effect surface as input
-                brush.SetSourceParameter("EffectSource", _compositor.CreateSurfaceBrush(effectSurface));
+                // Set to UniformToFill to match the stretch mode of the original image
+                effectSurface.Brush.Stretch = CompositionStretch.UniformToFill;
+                brush.SetSourceParameter("EffectSource", effectSurface.Brush);
             }
         }
 
@@ -172,13 +172,13 @@ namespace CompositionSampleGallery
             }
         }
 
-        private void Canvas_PointerEntered(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
+        private void Canvas_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             CompositionImage image = ((DependencyObject)sender).GetFirstDescendantOfType<CompositionImage>();
             _currentTechnique.OnPointerEnter(e.GetCurrentPoint(image).Position.ToVector2(), image);
         }
 
-        private void Canvas_PointerExited(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
+        private void Canvas_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             CompositionImage image = ((DependencyObject)sender).GetFirstDescendantOfType<CompositionImage>();
             _currentTechnique.OnPointerExit(e.GetCurrentPoint(image).Position.ToVector2(), image);

@@ -12,23 +12,29 @@
 //
 //*********************************************************
 
-using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Canvas.Effects;
-using SamplesCommon.ImageLoader;
+//using Microsoft.Graphics.Canvas;
+//using Microsoft.Graphics.Canvas.Effects;
+using SamplesCommon;
+
 using System;
-using System.Linq;
 using System.Numerics;
 using Windows.Foundation;
-using Windows.UI.Composition;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Hosting;
+
+using Windows.UI;
+
+using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI;
+using Microsoft.Graphics.Canvas.Effects;
+using Microsoft.Graphics.Canvas;
 
 namespace CompositionSampleGallery
 {
     /// <summary>
     /// A helper class encapsulating the function and visuals for a Color Bloom transition animation.
     /// </summary>
-    public class ColorBloomTransitionHelper
+    public class ColorBloomTransitionHelper : IDisposable
     {
         #region Member variables
 
@@ -36,8 +42,7 @@ namespace CompositionSampleGallery
         Compositor _compositor;
         ContainerVisual _containerForVisuals;
         ScalarKeyFrameAnimation _bloomAnimation;
-        IImageLoader _imageLoader;
-        IManagedSurface _circleMaskSurface;
+        ManagedSurface _circleMaskSurface;
 
         #endregion
 
@@ -61,9 +66,8 @@ namespace CompositionSampleGallery
             _containerForVisuals = _compositor.CreateContainerVisual();
             ElementCompositionPreview.SetElementChildVisual(hostForVisual, _containerForVisuals);
 
-            // initialize the ImageLoader and create the circle mask
-            _imageLoader = ImageLoaderFactory.CreateImageLoader(_compositor);
-            _circleMaskSurface = _imageLoader.CreateManagedSurfaceFromUri(new Uri("ms-appx:///Samples/SDK 10586/TransitionAnimation-ColorBloom/CircleOpacityMask.png"));
+            // Create the circle mask
+            _circleMaskSurface = ImageLoader.Instance.LoadCircle(200, Microsoft.UI.Colors.White);
         }
         #endregion
 
@@ -102,7 +106,7 @@ namespace CompositionSampleGallery
         /// <summary>
         /// Cleans up any remaining surfaces.
         /// </summary>
-        public void DisposeSurfaces()
+        public void Dispose()
         {
             _circleMaskSurface.Dispose();
         }
@@ -193,9 +197,8 @@ namespace CompositionSampleGallery
             //
             // Create the mask brush using the circle mask
             //
-            CompositionSurfaceBrush maskBrush = _compositor.CreateSurfaceBrush();
-            maskBrush.Surface = _circleMaskSurface.Surface;
-            brush.SetSourceParameter("mask", maskBrush);
+
+            brush.SetSourceParameter("mask", _circleMaskSurface.Brush);
 
             return brush;
 

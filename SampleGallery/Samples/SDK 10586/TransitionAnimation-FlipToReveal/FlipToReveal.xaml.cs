@@ -14,8 +14,8 @@
 
 using System;
 using System.Numerics;
-using Windows.UI.Composition;
-using Windows.UI.Xaml.Hosting;
+using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml.Hosting;
 
 namespace CompositionSampleGallery
 {
@@ -26,14 +26,16 @@ namespace CompositionSampleGallery
             this.InitializeComponent();
         }
 
-        public static string        StaticSampleName    { get { return "Flip to reveal"; } }
-        public override string      SampleName          { get { return StaticSampleName; } }
-        public override string      SampleDescription   { get { return "Demonstrates how to use Animations and Transforms to create a flip effect. Tap on the tile to reveal the image underneath. Tap again to see it flip back."; } }
-        public override string      SampleCodeUri       { get { return "http://go.microsoft.com/fwlink/p/?LinkID=761175"; } }
+        public static string        StaticSampleName => "Flip to reveal"; 
+        public override string      SampleName => StaticSampleName;
+        public static string        StaticSampleDescription => "Demonstrates how to use Animations and Transforms to create a flip effect. Tap on the tile to reveal the image underneath. Tap again to see it flip back.";
+        public override string      SampleDescription => StaticSampleDescription;
+        public override string      SampleCodeUri => "http://go.microsoft.com/fwlink/p/?LinkID=761175"; 
+
 
         private Boolean IsFlipped = false;
 
-        private void MainPanel_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
+        private void MainPanel_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
         {
             Visual visual = ElementCompositionPreview.GetElementVisual(CaptionTile);
             Compositor compositor = visual.Compositor;
@@ -64,7 +66,7 @@ namespace CompositionSampleGallery
 
             // we want the CaptionTile visible as it flips back
             if(IsFlipped)
-                CaptionTile.Visibility = Windows.UI.Xaml.Visibility.Visible;
+                CaptionTile.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
 
             visual.StartAnimation("RotationAngleInDegrees", rotationAnimation);
 
@@ -77,7 +79,7 @@ namespace CompositionSampleGallery
 
             // we want the CaptionTile invisible once flipped over
             if(IsFlipped)
-                CaptionTile.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+                CaptionTile.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
 
             
         }
@@ -104,7 +106,7 @@ namespace CompositionSampleGallery
 
         }
 
-        private void MainPanel_SizeChanged(object sender, Windows.UI.Xaml.SizeChangedEventArgs e)
+        private void MainPanel_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
         {
             UpdatePerspective();
         }

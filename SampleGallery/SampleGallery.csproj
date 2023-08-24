@@ -1,509 +1,273 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{B39C562B-EA01-4368-8AD9-DF79CC5A533A}</ProjectGuid>
-    <OutputType>AppContainerExe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>CompositionSampleGallery</RootNamespace>
-    <AssemblyName>CompositionSampleGallery</AssemblyName>
-    <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <PackageCertificateKeyFile>CompositionSampleGallery_TemporaryKey.pfx</PackageCertificateKeyFile>
-    <TargetPlatformVersion>10.0.14366.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.10586.0</TargetPlatformMinVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x86;x64;arm64</Platforms>
+    <RuntimeIdentifiers>win10-x86;win10-x64;</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+		<DefineConstants>USING_CSWINRT</DefineConstants>
   </PropertyGroup>
-  <Import Project="$(MSBuildThisFileDirectory)\..\SamplesCommon\SamplesCommon\CommonBuild.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>$(DefineConstants);DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
-    <NoWarn>;2008</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <ErrorReport>prompt</ErrorReport>
-    <Prefer32Bit>true</Prefer32Bit>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>1701;1702;CA1416</NoWarn>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>$(DefineConstants);TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
-    <Optimize>true</Optimize>
-    <NoWarn>;2008</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <ErrorReport>prompt</ErrorReport>
-    <Prefer32Bit>true</Prefer32Bit>
-    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\ARM\Debug\</OutputPath>
-    <DefineConstants>$(DefineConstants);DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
-    <NoWarn>;2008</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>ARM</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <ErrorReport>prompt</ErrorReport>
-    <Prefer32Bit>true</Prefer32Bit>
-    <ExcludeFilesFromDeployment>*.cs</ExcludeFilesFromDeployment>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
-    <OutputPath>bin\ARM\Release\</OutputPath>
-    <DefineConstants>$(DefineConstants);TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
-    <Optimize>true</Optimize>
-    <NoWarn>;2008</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>ARM</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <ErrorReport>prompt</ErrorReport>
-    <Prefer32Bit>true</Prefer32Bit>
-    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>$(DefineConstants);DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
-    <NoWarn>;2008</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <ErrorReport>prompt</ErrorReport>
-    <Prefer32Bit>true</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>$(DefineConstants);TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
-    <Optimize>true</Optimize>
-    <NoWarn>;2008</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <ErrorReport>prompt</ErrorReport>
-    <Prefer32Bit>true</Prefer32Bit>
-    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-    <None Include="project.json" />
+    <Compile Remove="SampleGallery %28Package%29\**" />
+    <Compile Remove="Samples\SDK 14393\SwipeScroller\**" />
+    <Compile Remove="Samples\SDK 14393\VideoPlayground\**" />
+    <Compile Remove="Samples\SDK 15063\ShowHideImplicitWebview\**" />
+    <Content Remove="SampleGallery %28Package%29\**" />
+    <EmbeddedResource Remove="SampleGallery %28Package%29\**" />
+    <EmbeddedResource Remove="Samples\SDK 14393\SwipeScroller\**" />
+    <EmbeddedResource Remove="Samples\SDK 14393\VideoPlayground\**" />
+    <EmbeddedResource Remove="Samples\SDK 15063\ShowHideImplicitWebview\**" />
+    <None Remove="SampleGallery %28Package%29\**" />
+    <None Remove="Samples\SDK 14393\SwipeScroller\**" />
+    <None Remove="Samples\SDK 14393\VideoPlayground\**" />
+    <None Remove="Samples\SDK 15063\ShowHideImplicitWebview\**" />
+    <Page Remove="SampleGallery %28Package%29\**" />
+    <Page Remove="Samples\SDK 14393\SwipeScroller\**" />
+    <Page Remove="Samples\SDK 14393\VideoPlayground\**" />
+    <Page Remove="Samples\SDK 15063\ShowHideImplicitWebview\**" />
+    <PRIResource Remove="SampleGallery %28Package%29\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ExtendedSplashScreen.xaml.cs">
-      <DependentUpon>ExtendedSplashScreen.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="MainPage.xaml.cs">
-      <DependentUpon>MainPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Samples\SDK 10586\BasicLayoutAndTransforms\BasicLayoutAndTransforms.xaml.cs">
-      <DependentUpon>BasicLayoutAndTransforms.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Samples\SDK 10586\BasicLayoutAndTransforms\TransformPropertyModel.cs" />
-    <Compile Include="Samples\SDK 10586\Perspective\Perspective.xaml.cs">
-      <DependentUpon>Perspective.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Samples\SDK 10586\TransitionAnimation-ColorSlide\ColorSlideTransition.cs" />
-    <Compile Include="Samples\SDK 10586\TransitionAnimation-ColorSlide\ColorSlideTransitionHelper.cs" />
-    <Compile Include="Samples\SDK 10586\TransitionAnimation-FlipToReveal\FlipToReveal.xaml.cs" />
-    <Compile Include="Samples\SDK 10586\ZoomWithPerspective\ZoomWithPerspective.xaml.cs" />
-    <Compile Include="Samples\SDK Insider\BlurPlayground\BlurPlayground.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\ConnectedAnimationSample\ConnectedAnimationDetail.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586">
-      <DependentUpon>ConnectedAnimationDetail.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Samples\SDK 10586\CustomConnectedAnimation\ConnectedAnimationShell.xaml.cs">
-      <DependentUpon>ConnectedAnimationShell.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Samples\SDK Insider\ConnectedAnimationSample\ConnectedAnimationSample.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586">
-      <DependentUpon>ConnectedAnimationSample.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Samples\SDK Insider\Gears\Gears.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\Curtain\Curtain.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\ImplicitAnimationTransformer\ImplicitAnimationTransformer.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\ImageLightingPlayground\ImageLightingPlayground.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK 10586\TransitionAnimation-ColorBloom\ColorBloomTransition.xaml.cs">
-      <DependentUpon>ColorBloomTransition.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Samples\SDK 10586\TransitionAnimation-ColorBloom\ColorBloomTransitionHelper.cs" />
-    <Compile Include="Samples\SDK Insider\Interactions3D\Interactions3D.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\Interactions3D\Node.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\LayoutAnimations\Photos.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586">
-      <DependentUpon>Photos.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Samples\SDK Insider\PullToAnimate\PullToAnimate.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\ShadowPlayground\ShadowPlayground.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586">
-      <DependentUpon>ShadowPlayground.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Samples\SDK Insider\BackDropSample\BackDropSample.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\PhotoViewer\ImagePopupViewer.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586">
-      <DependentUpon>ImagePopupViewer.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Samples\SDK Insider\PhotoViewer\PhotoViewer.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\TextShimmer\TextShimmer.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\ThumbnailLighting\ThumbnailLighting.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\Commands\DelegateCommand.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\Converters\BoolToStringConverter.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\Converters\BoolToVisibilityConverter.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\Converters\InvertBoolConverter.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\Converters\LightModeToBrushConverter.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\Converters\LightModeToVisibilityConverter.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\Converters\NullToVisibilityConverter.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\Converters\StringApenderConverter.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\EffectItem.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\StateTriggers\OrientationTrigger.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\VideoPlayground\VideoPlayground.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586">
-      <DependentUpon>VideoPlayground.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Samples\SDK Insider\VideoPlayground\VideoPlaygroundViewModel.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\LayerDepth\LayerDepth.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586">
-      <DependentUpon>LayerDepth.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Shared\HomePage.xaml.cs">
-      <DependentUpon>HomePage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Shared\LocalDataSource.cs" />
-    <Compile Include="Shared\SampleDefinition.cs" />
-    <Compile Include="Shared\SampleHost.xaml.cs">
-      <DependentUpon>SampleHost.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Shared\SamplePage.cs" />
-    <Compile Include="Shared\SampleListControl.xaml.cs" />
-    <Compile Include="Samples\SDK 10586\BasicXamlInterop\BasicXamlInterop.xaml.cs" />
-    <Compile Include="Samples\SDK 10586\CustomConnectedAnimation\CustomConnectedAnimation.xaml.cs" />
-    <Compile Include="Samples\SDK 10586\CustomConnectedAnimation\CustomConnectedAnimationDetail.cs" />
-    <Compile Include="Samples\SDK 10586\CustomConnectedAnimation\ConnectedTransition.cs" />
-    <Compile Include="Samples\SDK Insider\ForegroundFocusEffects\ForegroundFocusEffects.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK Insider\NowPlaying\NowPlaying.xaml.cs" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Compile Include="Samples\SDK 10586\ParallaxingListItems\ParallaxingListItems.xaml.cs" />
-    <Compile Include="Samples\SDK 10586\PointerEnterEffects\EffectTechniques.cs" />
-    <Compile Include="Samples\SDK 10586\PointerEnterEffects\PointerEnterEffects.xaml.cs" />
-    <Compile Include="Samples\SDK 10586\PropertySets\PropertySets.xaml.cs" />
-    <Compile Include="Samples\SampleTemplate\SampleTemplate.xaml.cs" />
-    <Compile Include="Samples\SDK 10586\Z-Order Scrolling\Z-OrderScrolling.xaml.cs" />
+    <None Remove="Assets\Abstract\Abstract-1.jpg" />
+    <None Remove="Assets\Abstract\Abstract-2.jpg" />
+    <None Remove="Assets\Abstract\Abstract-3.jpg" />
+    <None Remove="Assets\Abstract\Abstract-4.jpg" />
+    <None Remove="Assets\Abstract\Abstract-5.jpg" />
+    <None Remove="Assets\Abstract\Abstract-6.jpg" />
+    <None Remove="Assets\Abstract\Abstract-7.jpg" />
+    <None Remove="Assets\BannerImages\BrushInterop.PNG" />
+    <None Remove="Assets\BannerImages\IneractionTrackerBanner.png" />
+    <None Remove="Assets\BannerImages\PullToAnimateBanner.PNG" />
+    <None Remove="Assets\BannerImages\ShyHeader.png" />
+    <None Remove="Assets\CategoryIcons\table_depth_icon_bw.png" />
+    <None Remove="Assets\CategoryIcons\table_home_icon.png" />
+    <None Remove="Assets\CategoryIcons\table_light_icon_bw.png" />
+    <None Remove="Assets\CategoryIcons\table_material_icon_bw.png" />
+    <None Remove="Assets\CategoryIcons\table_motion_icon_bw.png" />
+    <None Remove="Assets\CategoryIcons\table_reference_icon.png" />
+    <None Remove="Assets\CategoryIcons\table_scale_icon_bw.png" />
+    <None Remove="Assets\Landscapes\Landscape-1.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-10.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-11.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-12.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-13.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-2.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-3.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-4.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-5.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-6.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-7.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-8.jpg" />
+    <None Remove="Assets\Landscapes\Landscape-9.jpg" />
+    <None Remove="Assets\Nature\Nature-1.jpg" />
+    <None Remove="Assets\Nature\Nature-10.jpg" />
+    <None Remove="Assets\Nature\Nature-11.jpg" />
+    <None Remove="Assets\Nature\Nature-12.jpg" />
+    <None Remove="Assets\Nature\Nature-13.jpg" />
+    <None Remove="Assets\Nature\Nature-2.jpg" />
+    <None Remove="Assets\Nature\Nature-3.jpg" />
+    <None Remove="Assets\Nature\Nature-4.jpg" />
+    <None Remove="Assets\Nature\Nature-5.jpg" />
+    <None Remove="Assets\Nature\Nature-6.jpg" />
+    <None Remove="Assets\Nature\Nature-7.jpg" />
+    <None Remove="Assets\Nature\Nature-8.jpg" />
+    <None Remove="Assets\Nature\Nature-9.jpg" />
+    <None Remove="Assets\NormalMapsAndMasks\BeveledEdges.jpg" />
+    <None Remove="Assets\NormalMapsAndMasks\bubblenm.jpg" />
+    <None Remove="Assets\NormalMapsAndMasks\conemap.jpg" />
+    <None Remove="Assets\NormalMapsAndMasks\ForegroundFocusMask.png" />
+    <None Remove="Assets\NormalMapsAndMasks\pointmap.jpg" />
+    <None Remove="Assets\NormalMapsAndMasks\SphericalWithMask.png" />
+    <None Remove="Assets\Other\110Strawberry.png" />
+    <None Remove="Assets\Other\60Banana.png" />
+    <None Remove="Assets\Other\60Lemon.png" />
+    <None Remove="Assets\Other\60Mint.png" />
+    <None Remove="Assets\Other\60Orange.png" />
+    <None Remove="Assets\Other\60SprinklesRainbow.png" />
+    <None Remove="Assets\Other\60Strawberry.png" />
+    <None Remove="Assets\Other\60Vanilla.png" />
+    <None Remove="Assets\Other\Appointment.png" />
+    <None Remove="Assets\Other\BlueBall.png" />
+    <None Remove="Assets\Other\Calendar.png" />
+    <None Remove="Assets\Other\Checkerboard.png" />
+    <None Remove="Assets\Other\CircleMask.png" />
+    <None Remove="Assets\Other\FirstGear.png" />
+    <None Remove="Assets\Other\Gear.png" />
+    <None Remove="Assets\Other\MissingThumbnail.png" />
+    <None Remove="Assets\Other\Noise.jpg" />
+    <None Remove="Assets\Other\RedBall.png" />
+    <None Remove="Assets\Other\RoundedRect.png" />
+    <None Remove="Assets\Other\stage.jpg" />
+    <None Remove="Assets\Other\Twitter_Logo_White_On_Blue.png" />
+    <None Remove="Assets\Other\WeatherInfo.png" />
+    <None Remove="Assets\SampleThumbnails\AdvancedShadows.PNG" />
+    <None Remove="Assets\SampleThumbnails\AnimationController.PNG" />
+    <None Remove="Assets\SampleThumbnails\BackDropControlSample.PNG" />
+    <None Remove="Assets\SampleThumbnails\BasicLayoutAndTransitions.PNG" />
+    <None Remove="Assets\SampleThumbnails\BasicXAMLInterop.PNG" />
+    <None Remove="Assets\SampleThumbnails\BlurPlayground.PNG" />
+    <None Remove="Assets\SampleThumbnails\BorderEffects.PNG" />
+    <None Remove="Assets\SampleThumbnails\BrushInterop.png" />
+    <None Remove="Assets\SampleThumbnails\ColorBloom.jpg" />
+    <None Remove="Assets\SampleThumbnails\ColorSlide.png" />
+    <None Remove="Assets\SampleThumbnails\CompositionCapabilities.PNG" />
+    <None Remove="Assets\SampleThumbnails\ContinuityAnimations.jpg" />
+    <None Remove="Assets\SampleThumbnails\Curtain.PNG" />
+    <None Remove="Assets\SampleThumbnails\ExpressionsAndPropertySets.PNG" />
+    <None Remove="Assets\SampleThumbnails\FlipToReveal.png" />
+    <None Remove="Assets\SampleThumbnails\ForegroundFocusEffects.PNG" />
+    <None Remove="Assets\SampleThumbnails\Gears.PNG" />
+    <None Remove="Assets\SampleThumbnails\ImplicitAnimations.PNG" />
+    <None Remove="Assets\SampleThumbnails\Interaction3D.PNG" />
+    <None Remove="Assets\SampleThumbnails\LayerDepth.PNG" />
+    <None Remove="Assets\SampleThumbnails\LayerVisualSample.PNG" />
+    <None Remove="Assets\SampleThumbnails\LayoutAnimations.PNG" />
+    <None Remove="Assets\SampleThumbnails\LightInterop.png" />
+    <None Remove="Assets\SampleThumbnails\LightSpheres.PNG" />
+    <None Remove="Assets\SampleThumbnails\lineargradients.PNG" />
+    <None Remove="Assets\SampleThumbnails\Lottie.png" />
+    <None Remove="Assets\SampleThumbnails\NavigationFlow.PNG" />
+    <None Remove="Assets\SampleThumbnails\NineGridResizing.PNG" />
+    <None Remove="Assets\SampleThumbnails\NowPlaying.PNG" />
+    <None Remove="Assets\SampleThumbnails\OffsetStompingFix.PNG" />
+    <None Remove="Assets\SampleThumbnails\ParallaxingListviewItem.PNG" />
+    <None Remove="Assets\SampleThumbnails\Perspective.png" />
+    <None Remove="Assets\SampleThumbnails\PhotoPopupViewer.PNG" />
+    <None Remove="Assets\SampleThumbnails\PointerEnterExitEffects.PNG" />
+    <None Remove="Assets\SampleThumbnails\PointerRotate.PNG" />
+    <None Remove="Assets\SampleThumbnails\PullToAnimate.jpg" />
+    <None Remove="Assets\SampleThumbnails\PullToRefresh.png" />
+    <None Remove="Assets\SampleThumbnails\SceneNodePlayground.png" />
+    <None Remove="Assets\SampleThumbnails\ShadowInterop.PNG" />
+    <None Remove="Assets\SampleThumbnails\ShadowPlayground.jpg" />
+    <None Remove="Assets\SampleThumbnails\ShowHideImplicitWebview.PNG" />
+    <None Remove="Assets\SampleThumbnails\ShyHeader.PNG" />
+    <None Remove="Assets\SampleThumbnails\SpringyImage.PNG" />
+    <None Remove="Assets\SampleThumbnails\&#xD;&#xA;		  .png" />
+    <None Remove="Assets\SampleThumbnails\TextShimmer.png" />
+    <None Remove="Assets\SampleThumbnails\ThumbnailLighting.jpg" />
+    <None Remove="Assets\SampleThumbnails\TransparentWindow.PNG" />
+    <None Remove="Assets\SampleThumbnails\TreeEffect.PNG" />
+    <None Remove="Assets\SampleThumbnails\VideoPlayground.PNG" />
+    <None Remove="Assets\SampleThumbnails\Z-OrderScrolling.PNG" />
+    <None Remove="Assets\SampleThumbnails\ZoomWithPerspective.PNG" />
+    <None Remove="Assets\StoreAssets\AppIcon.scale-150.png" />
+    <None Remove="Assets\StoreAssets\AppIcon.scale-200.png" />
+    <None Remove="Assets\StoreAssets\AppIcon.scale-300.png" />
+    <None Remove="Assets\StoreAssets\AppIcon.scale-400.png" />
+    <None Remove="Assets\StoreAssets\SplashScreen.scale-150.png" />
+    <None Remove="Assets\StoreAssets\SplashScreen.scale-200.png" />
+    <None Remove="Assets\StoreAssets\SplashScreen.scale-300.png" />
+    <None Remove="Assets\StoreAssets\SplashScreen.scale-400.png" />
+    <None Remove="Assets\StoreAssets\Square150.scale-150.png" />
+    <None Remove="Assets\StoreAssets\Square150.scale-200.png" />
+    <None Remove="Assets\StoreAssets\Square150.scale-300.png" />
+    <None Remove="Assets\StoreAssets\Square150.scale-400.png" />
+    <None Remove="Assets\StoreAssets\StoreLogo.scale-100.png" />
+    <None Remove="Assets\StoreAssets\StoreLogo.scale-150.png" />
+    <None Remove="Assets\StoreAssets\StoreLogo.scale-200.png" />
+    <None Remove="Assets\StoreAssets\StoreLogo.scale-300.png" />
+    <None Remove="Assets\StoreAssets\StoreLogo.scale-400.png" />
+    <None Remove="Assets\StoreAssets\Wide.scale-150.png" />
+    <None Remove="Assets\StoreAssets\Wide.scale-200.png" />
+    <None Remove="Assets\StoreAssets\Wide.scale-300.png" />
+    <None Remove="Assets\StoreAssets\Wide.scale-400.png" />
+    <None Remove="ExtendedSplashScreen.xaml" />
+    <None Remove="MainPage.xaml" />
+    <None Remove="Pages\BaseCategoryPage.xaml" />
+    <None Remove="Pages\HomePage.xaml" />
+    <None Remove="SampleGalleryNavViewHost.xaml" />
+    <None Remove="Samples\Input\InputCursor.xaml" />
+    <None Remove="Shared\BodyAppList.xaml" />
+    <None Remove="Shared\FeaturedSamples.xaml" />
+    <None Remove="Shared\FeaturedSamplesHomePage.xaml" />
+    <None Remove="Shared\FlipViewIndicator.xaml" />
+    <None Remove="Shared\Footer.xaml" />
+    <None Remove="Shared\SampleHost.xaml" />
+    <None Remove="Shared\SharedResourceDictionaries.xaml" />
+    <None Remove="Shared\Social.xaml" />
+    <None Remove="Settings.xaml" />
+    <None Remove="ExtendedSplashScreen.xaml" />
+    <None Remove="Pages\SearchResultsPage.xaml" />
+    <None Remove="Pages\HomePage.xaml" />
   </ItemGroup>
+
   <ItemGroup>
-    <AppxManifest Include="Package.appxmanifest">
-      <SubType>Designer</SubType>
-    </AppxManifest>
-    <None Include="CompositionSampleGallery_TemporaryKey.pfx" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22000.196" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.0.0" />
+    <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
+
   <ItemGroup>
-    <Content Include="Assets\Appointment.png" />
-    <Content Include="Assets\Background.png" />
-    <Content Include="Assets\ContinuityAnimations.jpg" />
-    <Content Include="Assets\Noise.jpg" />
-    <Content Include="Assets\ShadowPlayground.jpg" />
-    <Content Include="Assets\Calendar.png" />
-    <Content Include="Assets\CircleMask.png" />
-    <Content Include="Assets\Clock.jpg" />
-    <Content Include="Assets\ColorBloom.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-1.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-10.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-11.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-12.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-2.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-3.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-4.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-5.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-6.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-7.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-8.jpg" />
-    <Content Include="Assets\Landscapes\Landscape-9.jpg" />
-    <Content Include="Assets\FirstGear.png" />
-    <Content Include="Assets\Gear.png" />
-    <Content Include="Assets\Gears_background.png" />
-    <Content Include="Assets\PullToAnimate.jpg" />
-    <Content Include="Assets\ThumbnailLighting.jpg" />
-    <Content Include="Assets\WeatherInfo.png" />
-    <Content Include="Assets\ZoomPerspective.jpg" />
-    <Content Include="Assets\ZOrderScrolling.jpg" />
-    <Content Include="Samples\SDK 10586\Perspective\jellyfish.jpg" />
-    <Content Include="Samples\SDK 10586\TransitionAnimation-FlipToReveal\Image.jpg" />
-    <Content Include="Samples\SDK Insider\ForegroundFocusEffects\Mask.png" />
-    <Content Include="Samples\SDK Insider\ImplicitAnimationTransformer\110Strawberry.png" />
-    <Content Include="Samples\SDK Insider\ImplicitAnimationTransformer\60Banana.png" />
-    <Content Include="Samples\SDK Insider\ImplicitAnimationTransformer\60Lemon.png" />
-    <Content Include="Samples\SDK Insider\ImplicitAnimationTransformer\60Mint.png" />
-    <Content Include="Samples\SDK Insider\ImplicitAnimationTransformer\60Orange.png" />
-    <Content Include="Samples\SDK Insider\ImplicitAnimationTransformer\60SprinklesRainbow.png" />
-    <Content Include="Samples\SDK Insider\ImplicitAnimationTransformer\60Strawberry.png" />
-    <Content Include="Samples\SDK Insider\ImplicitAnimationTransformer\60Vanilla.png" />
-    <Content Include="Samples\SDK Insider\ImageLightingPlayground\rocks.jpg" />
-    <Content Include="Samples\SDK Insider\ImageLightingPlayground\rocks_NM_height.png" />
-    <Content Include="Samples\SDK 10586\PointerEnterEffects\conemap.jpg" />
-    <Content Include="Samples\SDK 10586\PointerEnterEffects\pointmap.jpg" />
-    <Content Include="Properties\Default.rd.xml" />
-    <Content Include="Assets\LockScreenLogo.scale-200.png" />
-    <Content Include="Assets\SplashScreen.scale-200.png" />
-    <Content Include="Assets\Square150x150Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
-    <Content Include="Assets\StoreLogo.png" />
-    <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="Samples\SDK 10586\PropertySets\BlueBall.png" />
-    <Content Include="Samples\SDK 10586\PropertySets\RedBall.png" />
-    <Content Include="Samples\SDK 10586\TransitionAnimation-ColorBloom\CircleOpacityMask.png" />
-    <Content Include="Samples\SDK 10586\Z-Order Scrolling\RollingWaves.jpg" />
-    <Content Include="Samples\SDK 10586\Z-Order Scrolling\teched3ae5a27b-4f78-e111-94ad-001ec953730b.jpg" />
-    <Content Include="Assets\Photos\pic00.jpg" />
-    <Content Include="Assets\Photos\pic01.jpg" />
-    <Content Include="Assets\Photos\pic02.jpg" />
-    <Content Include="Assets\Photos\pic03.jpg" />
-    <Content Include="Assets\Photos\pic04.jpg" />
-    <Content Include="Assets\Photos\pic05.jpg" />
-    <Content Include="Assets\Photos\pic06.jpg" />
-    <Content Include="Assets\Photos\pic07.jpg" />
-    <Content Include="Assets\Photos\pic08.jpg" />
-    <Content Include="Assets\Photos\pic09.jpg" />
-    <Content Include="Assets\Photos\pic10.jpg" />
-    <Content Include="Assets\Photos\pic11.jpg" />
-    <Content Include="Assets\Photos\pic12.jpg" />
-    <Content Include="Assets\Photos\pic13.jpg" />
-    <Content Include="Assets\Photos\pic14.jpg" />
-    <Content Include="Assets\Photos\pic15.jpg" />
-    <Content Include="Assets\Photos\pic16.jpg" />
-    <Content Include="Assets\Photos\pic17.jpg" />
-    <Content Include="Assets\Photos\pic18.jpg" />
-    <Content Include="Assets\Photos\pic19.jpg" />
-    <Content Include="Assets\Photos\pic20.jpg" />
-    <Content Include="Assets\Photos\pic21.jpg" />
-    <Content Include="Assets\Photos\pic22.jpg" />
-    <Content Include="Assets\Photos\pic23.jpg" />
-    <Content Include="Assets\Photos\pic24.jpg" />
-    <Content Include="Assets\Photos\pic25.jpg" />
-    <Content Include="Assets\Photos\pic26.jpg" />
-    <Content Include="Assets\Photos\pic27.jpg" />
-    <Content Include="Assets\Photos\pic28.jpg" />
-    <Content Include="Assets\Photos\pic29.jpg" />
-    <Content Include="Assets\Photos\pic30.jpg" />
-    <Content Include="Assets\Photos\pic31.jpg" />
-    <Content Include="Assets\Photos\pic32.jpg" />
-    <Content Include="Assets\Photos\pic33.jpg" />
-    <Content Include="Assets\Photos\pic34.jpg" />
-    <Content Include="Assets\Photos\pic35.jpg" />
-    <Content Include="Assets\Photos\pic36.jpg" />
-    <Content Include="Assets\Photos\pic37.jpg" />
-    <Content Include="Assets\Photos\pic38.jpg" />
-    <Content Include="Assets\Photos\pic39.jpg" />
-    <Content Include="Assets\Photos\pic40.jpg" />
-    <Content Include="Assets\Photos\pic41.jpg" />
-    <Content Include="Assets\Photos\pic42.jpg" />
-    <Content Include="Assets\Photos\pic43.jpg" />
-    <Content Include="Assets\Photos\pic44.jpg" />
-    <Content Include="Assets\Photos\pic45.jpg" />
-    <Content Include="Samples\SDK Insider\Interactions3D\stage.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\1.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\10.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\11.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\12.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\13.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\14.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\15.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\16.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\17.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\18.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\19.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\2.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\20.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\3.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\4.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\5.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\6.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\7.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\8.jpg" />
-    <Content Include="Samples\SDK Insider\LayoutAnimations\9.jpg" />
-    <Content Include="Samples\SDK Insider\NowPlaying\normalmap.jpg" />
-    <Content Include="Samples\SDK Insider\ShadowPlayground\win11_-15607.jpg" />
-    <Content Include="Samples\SDK Insider\ThumbnailLighting\BeveledEdges.jpg" />
-    <Content Include="Samples\SDK Insider\ThumbnailLighting\SphericalWithMask.png" />
+    <ProjectReference Include="..\ExpressionBuilder\ExpressionBuilder\ExpressionBuilder.csproj" />
+    <ProjectReference Include="..\SamplesCommon\SamplesCommon\SamplesCommon.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
-    <Page Include="ExtendedSplashScreen.xaml">
-      <SubType>Designer</SubType>
+    <Page Update="Settings.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK 10586\BasicLayoutAndTransforms\BasicLayoutAndTransforms.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK 10586\Perspective\Perspective.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK 10586\TransitionAnimation-ColorSlide\ColorSlideTransition.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK 10586\ZoomWithPerspective\ZoomWithPerspective.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK 10586\TransitionAnimation-FlipToReveal\FlipToReveal.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\BlurPlayground\BlurPlayground.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\ConnectedAnimationSample\ConnectedAnimationDetail.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <SubType>Designer</SubType>
+    <Page Update="SampleGalleryNavViewHost.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Samples\SDK 10586\CustomConnectedAnimation\ConnectedAnimationShell.xaml">
-      <SubType>Designer</SubType>
+    <Page Update="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Samples\SDK Insider\ConnectedAnimationSample\ConnectedAnimationSample.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <SubType>Designer</SubType>
+    <Page Update="Shared\BodyAppList.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Samples\SDK Insider\Curtain\Curtain.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\Gears\Gears.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\ImplicitAnimationTransformer\ImplicitAnimationTransformer.xaml" Condition="$(TargetPlatformBuild) &gt;10586" />
-    <Page Include="Samples\SDK Insider\ImageLightingPlayground\ImageLightingPlayground.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK 10586\TransitionAnimation-ColorBloom\ColorBloomTransition.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\BackDropSample\BackDropSample.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\Interactions3D\Interactions3D.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\LayoutAnimations\Photos.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\PullToAnimate\PullToAnimate.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\ShadowPlayground\ShadowPlayground.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\PhotoViewer\ImagePopupViewer.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <SubType>Designer</SubType>
+    <Page Update="Shared\FeaturedSamples.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Samples\SDK Insider\PhotoViewer\PhotoViewer.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\TextShimmer\TextShimmer.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\ThumbnailLighting\ThumbnailLighting.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\VideoPlayground\VideoPlayground.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK Insider\LayerDepth\LayerDepth.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Shared\HomePage.xaml">
-      <SubType>Designer</SubType>
+    <Page Update="Shared\FeaturedSamplesHomePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Shared\SampleListControl.xaml">
+    <Page Update="Shared\FlipViewIndicator.xaml">
       <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
-    <Page Include="Samples\SDK 10586\BasicXamlInterop\BasicXamlInterop.xaml">
+    <Page Update="Shared\Footer.xaml">
       <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
-    <Page Include="Samples\SDK 10586\CustomConnectedAnimation\CustomConnectedAnimation.xaml">
+    <Page Update="Shared\SampleHost.xaml">
       <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
-    <Page Include="Samples\SDK 10586\CustomConnectedAnimation\CustomConnectedAnimationDetail.xaml">
+    <Page Update="Shared\SharedResourceDictionaries.xaml">
       <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
-    <Page Include="Samples\SDK Insider\ForegroundFocusEffects\ForegroundFocusEffects.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
+    <Page Update="Shared\Social.xaml">
       <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
-    <Page Include="Samples\SDK Insider\NowPlaying\NowPlaying.xaml" Condition="$(TargetPlatformBuild) &gt;10586">
+    <Page Update="Pages\SearchResultsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
-    <Page Include="Samples\SDK 10586\ParallaxingListItems\ParallaxingListItems.xaml">
+    <Page Update="Pages\HomePage.xaml">
       <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
-    <Page Include="Samples\SDK 10586\PointerEnterEffects\PointerEnterEffects.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK 10586\PropertySets\PropertySets.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SampleTemplate\SampleTemplate.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Samples\SDK 10586\Z-Order Scrolling\Z-OrderScrolling.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Shared\SampleHost.xaml">
-      <SubType>Designer</SubType>
+    <Page Update="Pages\BaseCategoryPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\SamplesCommon\SamplesCommon\SamplesCommon.csproj">
-      <Project>{0b6a4830-d1ff-4018-baa2-7257eb4579fe}</Project>
-      <Name>SamplesCommon</Name>
-    </ProjectReference>
+    <Folder Include="Pages\" />
   </ItemGroup>
-  <ItemGroup />
-  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
-    <VisualStudioVersion>14.0</VisualStudioVersion>
-  </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
+  <ItemGroup>
+    <Page Update="Samples\Input\InputCursor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 </Project>

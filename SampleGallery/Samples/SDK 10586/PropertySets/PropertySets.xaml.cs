@@ -12,12 +12,15 @@
 //
 //*********************************************************
 
-using SamplesCommon.ImageLoader;
+using ExpressionBuilder;
+using SamplesCommon;
 using System;
 using System.Numerics;
-using Windows.UI;
-using Windows.UI.Composition;
-using Windows.UI.Xaml.Hosting;
+using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Hosting;
+
+using EF = ExpressionBuilder.ExpressionFunctions;
 
 namespace CompositionSampleGallery
 {
@@ -31,15 +34,15 @@ namespace CompositionSampleGallery
             this.InitializeComponent();
         }
 
-        public static string        StaticSampleName    { get { return "Expressions & PropertySets"; } }
-        public override string      SampleName          { get { return StaticSampleName; } }
-        public override string      SampleDescription   { get { return "Demonstrates how to use ExpressionAnimations and CompositionPropertySets to create a simple orbiting Visual."; } }
-        public override string      SampleCodeUri       { get { return "http://go.microsoft.com/fwlink/p/?LinkID=761172"; } }
+        public static string        StaticSampleName => "Expressions & PropertySets"; 
+        public override string      SampleName => StaticSampleName; 
+        public static string        StaticSampleDescription => "Demonstrates how to use ExpressionAnimations and CompositionPropertySets to create a simple orbiting Visual."; 
+        public override string      SampleDescription => StaticSampleDescription; 
+        public override string      SampleCodeUri => "http://go.microsoft.com/fwlink/p/?LinkID=761172"; 
 
-        private void SamplePage_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void SamplePage_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
             Compositor compositor = ElementCompositionPreview.GetElementVisual(MyGrid).Compositor;
-            IImageLoader imageLoader = ImageLoaderFactory.CreateImageLoader(compositor);
             ContainerVisual container = compositor.CreateContainerVisual();
             ElementCompositionPreview.SetElementChildVisual(MyGrid, container);
 
@@ -48,13 +51,8 @@ namespace CompositionSampleGallery
             // Create a couple of SurfaceBrushes for the orbiters and center
             //
 
-            CompositionSurfaceBrush redBrush = compositor.CreateSurfaceBrush();
-            _redBallSurface = imageLoader.CreateManagedSurfaceFromUri(new Uri("ms-appx:///Samples/SDK 10586/PropertySets/RedBall.png"));
-            redBrush.Surface = _redBallSurface.Surface;
-
-            CompositionSurfaceBrush blueBrush = compositor.CreateSurfaceBrush();
-            _blueBallSurface = imageLoader.CreateManagedSurfaceFromUri(new Uri("ms-appx:///Samples/SDK 10586/PropertySets/BlueBall.png"));
-            blueBrush.Surface = _blueBallSurface.Surface;
+            _redBallSurface = ImageLoader.Instance.LoadFromUri(new Uri("ms-appx:///Assets/Other/RedBall.png"));
+            _blueBallSurface = ImageLoader.Instance.LoadFromUri(new Uri("ms-appx:///Assets/Other/BlueBall.png"));
 
 
             //
@@ -62,16 +60,27 @@ namespace CompositionSampleGallery
             //
 
             SpriteVisual redSprite = compositor.CreateSpriteVisual();
-            redSprite.Brush = redBrush;
+            redSprite.Brush = _redBallSurface.Brush;
             redSprite.Size = new Vector2(100f, 100f);
-            redSprite.Offset = new Vector3(200f, 200f, 0f);
+            redSprite.Offset = new Vector3(this.ActualSize.X / 2 - redSprite.Size.X/2, 150f, 0f);
             container.Children.InsertAtTop(redSprite);
 
             SpriteVisual blueSprite = compositor.CreateSpriteVisual();
-            blueSprite.Brush = blueBrush;
+            blueSprite.Brush = _blueBallSurface.Brush;
             blueSprite.Size = new Vector2(25f, 25f);
-            blueSprite.Offset = new Vector3(0f, 0f, 0f);
+            blueSprite.Offset = new Vector3((float)this.ActualSize.X / 2 - redSprite.Size.X / 2, 50f, 0f);
             container.Children.InsertAtTop(blueSprite);
+
+            //
+            // Create the PropertySet that contains all the value referenced in the expression. We can also
+            // animate these properties, leading to the expression being re-evaluated per frame.
+            //
+
+            _propertySet = compositor.CreatePropertySet();
+            _propertySet.InsertScalar("Rotation", 0f);
+            _propertySet.InsertVector3("CenterPointOffset", new Vector3(redSprite.Size.X / 2 - blueSprite.Size.X / 2,
+                                                                        redSprite.Size.Y / 2 - blueSprite.Size.Y / 2, 
+                                                                        0));
 
             //
             // Create the expression.  This expression positions the orbiting sprite relative to the center of
@@ -79,28 +88,16 @@ namespace CompositionSampleGallery
             // the current value of it's offset and keep the blue sprite locked in orbit.
             //
 
-            ExpressionAnimation expressionAnimation = compositor.CreateExpressionAnimation("visual.Offset + " +
-                                                                                           "propertySet.CenterPointOffset + " +
-                                                                                           "Vector3(cos(ToRadians(propertySet.Rotation)) * 150," +
-                                                                                                   "sin(ToRadians(propertySet.Rotation)) * 75, 0)");
-
-            //
-            // Create the PropertySet.  This property bag contains all the value referenced in the expression.  We can
-            // animation these property leading to the expression being re-evaluated per frame.
-            //
-
-            CompositionPropertySet propertySet = compositor.CreatePropertySet();
-            propertySet.InsertScalar("Rotation", 0f);
-            propertySet.InsertVector3("CenterPointOffset", new Vector3(redSprite.Size.X / 2 - blueSprite.Size.X / 2, 
-                                                                       redSprite.Size.Y / 2 - blueSprite.Size.Y / 2, 0));
-
-            // Set the parameters of the expression animation
-            expressionAnimation.SetReferenceParameter("propertySet", propertySet);
-            expressionAnimation.SetReferenceParameter("visual", redSprite);
+            var propSetCenterPoint = _propertySet.GetReference().GetVector3Property("CenterPointOffset");
+            var propSetRotation = _propertySet.GetReference().GetScalarProperty("Rotation");
+            var orbitExpression = redSprite.GetReference().Offset + propSetCenterPoint + 
+                EF.Vector3(
+                    EF.Cos(EF.ToRadians(propSetRotation)) * 150,
+                    EF.Sin(EF.ToRadians(propSetRotation)) * 75, 
+                    0);
 
             // Start the expression animation!
-            blueSprite.StartAnimation("Offset", expressionAnimation);
-
+            blueSprite.StartAnimation("Offset", orbitExpression);
 
             // Now animate the rotation property in the property bag, this generates the orbitting motion.
             var linear = compositor.CreateLinearEasingFunction();
@@ -108,25 +105,26 @@ namespace CompositionSampleGallery
             rotAnimation.InsertKeyFrame(1.0f, 360f, linear);
             rotAnimation.Duration = TimeSpan.FromMilliseconds(4000);
             rotAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
-            propertySet.StartAnimation("Rotation", rotAnimation);
+            _propertySet.StartAnimation("Rotation", rotAnimation);
 
             // Lastly, animation the Offset of the red sprite to see the expression track appropriately
-            var offsetAnimation = compositor.CreateVector3KeyFrameAnimation();
-            offsetAnimation.InsertKeyFrame(0f, new Vector3(125f, 50f, 0f));
-            offsetAnimation.InsertKeyFrame(.5f, new Vector3(125f, 200f, 0f));
-            offsetAnimation.InsertKeyFrame(1f, new Vector3(125f, 50f, 0f));
+            var offsetAnimation = compositor.CreateScalarKeyFrameAnimation();
+            offsetAnimation.InsertKeyFrame(0f, 50f);
+            offsetAnimation.InsertKeyFrame(.5f, 150f);
+            offsetAnimation.InsertKeyFrame(1f, 50f);
             offsetAnimation.Duration = TimeSpan.FromMilliseconds(4000);
             offsetAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
-            redSprite.StartAnimation("Offset", offsetAnimation);
+            redSprite.StartAnimation("Offset.Y", offsetAnimation);
         }
 
-        private void SamplePage_Unloaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void SamplePage_Unloaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
             _redBallSurface.Dispose();
             _blueBallSurface.Dispose();
         }
 
-        private IManagedSurface _redBallSurface;
-        private IManagedSurface _blueBallSurface;
+        private ManagedSurface _redBallSurface;
+        private ManagedSurface _blueBallSurface;
+        private CompositionPropertySet _propertySet;
     }
 }

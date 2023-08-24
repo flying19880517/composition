@@ -12,17 +12,24 @@
 //
 //*********************************************************
 
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Navigation;
+using System;
+
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Navigation;
 
 namespace CompositionSampleGallery
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class SampleHost : Page
     {
+        private SampleDefinition _sampleDefinition;
+
+        public SampleDefinition SampleDefinition
+        {
+            get { return _sampleDefinition; }
+            set { _sampleDefinition = value;  }
+        }
+
         public SampleHost()
         {
             this.InitializeComponent();
@@ -33,17 +40,20 @@ namespace CompositionSampleGallery
             base.OnNavigatedTo(e);
 
             SampleDefinition definition = (SampleDefinition)e.Parameter;
+            SampleDefinition = definition;
             ContentFrame.Navigate(definition.Type, this);
         }
 
-        private void ShowSplitView(object sender, RoutedEventArgs e)
+        public void TagHyperlink_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
-            MySampleListControl.SamplesSplitView.IsPaneOpen = !MySampleListControl.SamplesSplitView.IsPaneOpen;
-        }
+            var inline = ((Hyperlink)sender).Inlines[0];
+            var run = (Run)inline;
+            var searchString = run.Text;
 
-        private void NavigateHome(object sender, RoutedEventArgs e)
-        {
-            ((Frame)Window.Current.Content).Navigate(typeof(HomePage));
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                MainNavigationViewModel.ShowSearchResults(searchString);
+            }
         }
     }
 }

@@ -13,8 +13,10 @@
 //*********************************************************
 
 using System;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Navigation;
+
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Navigation;
 
 namespace CompositionSampleGallery
 {
@@ -22,19 +24,32 @@ namespace CompositionSampleGallery
     {
         public abstract string SampleDescription { get; }
         public abstract string SampleName { get; }
-        public virtual string SampleCodeUri { get { return "https://github.com/Microsoft/composition/";} }
+        public virtual string SampleCodeUri { get { return "https://github.com/Microsoft/windowscompositionsamples/";} }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
 
-            if (e.Parameter is SampleHost)
+            if (e.Parameter is SampleHost host)
             {
-                SampleHost host = (SampleHost)e.Parameter;
-
                 host.SampleDescription.Text = SampleDescription;
                 host.SampleName.Text = SampleName;
                 host.SampleCode.NavigateUri = new Uri(SampleCodeUri);
+
+                // Show sample tags if any exist
+                if(host.SampleDefinition.Tags != null)
+                {
+                    host.SampleTagsTextBlock.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    host.SampleTagsTextBlock.Inlines.Add(new Run() { Text = "Tags: " });
+                    foreach (string t in host.SampleDefinition.Tags)
+                    {
+                        var hyperlink = new Hyperlink();
+                        hyperlink.Click += host.TagHyperlink_Click;
+                        hyperlink.Inlines.Add(new Run() { Text = t });
+                        host.SampleTagsTextBlock.Inlines.Add(hyperlink);
+                        host.SampleTagsTextBlock.Inlines.Add(new Run() { Text = " " });
+                    }
+                }
             }
         }
     }

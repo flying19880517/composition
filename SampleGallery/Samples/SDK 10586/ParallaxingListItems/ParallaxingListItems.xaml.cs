@@ -12,23 +12,21 @@
 //
 //*********************************************************
 
-using CompositionSampleGallery.Shared;
+using ExpressionBuilder;
 using SamplesCommon;
-using System.Diagnostics;
+using System.Collections.ObjectModel;
 using System.Numerics;
-using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.UI.Composition;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Hosting;
-
+using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
+using CompositionSampleGallery.Shared;
 
 namespace CompositionSampleGallery
 {
     public sealed partial class ParallaxingListItems : SamplePage
     {
-        private ExpressionAnimation _parallaxExpression;
+        private ExpressionNode _parallaxExpression;
         private CompositionPropertySet _scrollProperties;
 
         public ParallaxingListItems()
@@ -37,10 +35,11 @@ namespace CompositionSampleGallery
             this.InitializeComponent();
         }
 
-        public static string       StaticSampleName     { get { return "Parallaxing ListView Items"; } }
-        public override string     SampleName           { get { return StaticSampleName; } }
-        public override string     SampleDescription    { get { return "Demonstrates how to apply a parallax effect to each item in a ListView control. As you scroll the ListView control watch as each ListView item translates at a different rate in comparison to the ListView's scroll position."; } }
-        public override string     SampleCodeUri        { get { return "http://go.microsoft.com/fwlink/p/?LinkID=761169"; } }
+        public static string       StaticSampleName => "Parallaxing ListView Items"; 
+        public override string     SampleName => StaticSampleName; 
+        public static string       StaticSampleDescription => "Demonstrates how to apply a parallax effect to each item in a ListView control. As you scroll the ListView control watch as each ListView item translates at a different rate in comparison to the ListView's scroll position."; 
+        public override string     SampleDescription => StaticSampleDescription;
+        public override string     SampleCodeUri => "http://go.microsoft.com/fwlink/p/?LinkID=761169"; 
 
         public LocalDataSource Model { set; get; }
 
@@ -53,21 +52,21 @@ namespace CompositionSampleGallery
             _scrollProperties = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(myScrollViewer);
 
             // Setup the expression
-            _parallaxExpression = compositor.CreateExpressionAnimation();
-            _parallaxExpression.SetScalarParameter("StartOffset", 0.0f);
-            _parallaxExpression.SetScalarParameter("ParallaxValue", 0.5f);
-            _parallaxExpression.SetScalarParameter("ItemHeight", 0.0f);
-            _parallaxExpression.SetReferenceParameter("ScrollManipulation", _scrollProperties);
-            _parallaxExpression.Expression = "(ScrollManipulation.Translation.Y + StartOffset - (0.5 * ItemHeight)) * ParallaxValue - (ScrollManipulation.Translation.Y + StartOffset - (0.5 * ItemHeight))";
+            var scrollPropSet = _scrollProperties.GetSpecializedReference<ManipulationPropertySetReferenceNode>();
+            var startOffset = ExpressionValues.Constant.CreateConstantScalar("startOffset", 0.0f);
+            var parallaxValue = 0.5f;
+            var parallax = (scrollPropSet.Translation.Y + startOffset);
+            _parallaxExpression = parallax * parallaxValue - parallax;
 
-            ThumbnailList.ItemsSource = Model.Items;
+            ThumbnailList.ItemsSource = LocalDataSource.RandomizeDataSource(Model.Nature);
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             if (_parallaxExpression != null)
             {
-                _parallaxExpression.Dispose();
+                // (TODO) Re-add this in after Dispose() implemented on ExpressionNode
+                //_parallaxExpression.Dispose();
                 _parallaxExpression = null;
             }
 

@@ -1,56 +1,59 @@
-﻿//*********************************************************
+//*********************************************************
 //
 // Copyright (c) Microsoft. All rights reserved.
 // This code is licensed under the MIT License (MIT).
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
 // THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //*********************************************************
 
+﻿using Microsoft.UI;
+using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Media;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text;
+using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.UI;
-using Windows.UI.Composition;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Hosting;
-using Windows.UI.Xaml.Media;
 
 namespace SamplesCommon
 {
     public sealed class CompositionImage : Control
     {
-        private bool                        _unloaded;
-        private Compositor                  _compositor;
-        private SpriteVisual                _sprite;
-        private Uri                         _uri;
-        private CompositionDrawingSurface   _surface;
-        private CompositionSurfaceBrush     _surfaceBrush;
-        private CompositionBrush            _brush;
-        private LoadTimeEffectHandler       _loadEffectDelegate;
-        private CompositionStretch          _stretchMode;
-        private DispatcherTimer             _timer;
-        public event RoutedEventHandler     ImageOpened;
-        public event RoutedEventHandler     ImageFailed;
-        private TimeSpan                    _placeholderDelay;
-        private CompositionBrush            _placeholderBrush;
-        private bool                        _sharedSurface;
+        private bool _unloaded;
+        private Compositor _compositor;
+        private SpriteVisual _sprite;
+        private Uri _uri;
+        private ManagedSurface _surface;
+        private CompositionSurfaceBrush _surfaceBrush;
+        private CompositionBrush _brush;
+        private LoadTimeEffectHandler _loadEffectDelegate;
+        private CompositionStretch _stretchMode;
+        private DispatcherTimer _timer;
+        public event RoutedEventHandler ImageOpened;
+        public event RoutedEventHandler ImageFailed;
+        private TimeSpan _placeholderDelay;
+        private CompositionBrush _placeholderBrush;
+        private bool _sharedSurface;
 
-        static private CompositionBrush     _defaultPlaceholderBrush;
+        static private CompositionBrush _defaultPlaceholderBrush;
         static private ScalarKeyFrameAnimation
                                             _fadeOutAnimation;
         static private Vector2KeyFrameAnimation
                                             _scaleAnimation;
-        static bool                         _staticsInitialized;
+        static bool _staticsInitialized;
 
         public CompositionImage()
         {
@@ -82,12 +85,6 @@ namespace SamplesCommon
                 _staticsInitialized = true;
             }
 
-            // Initialize the surface loader if needed
-            if (!SurfaceLoader.IsInitialized)
-            {
-                SurfaceLoader.Initialize(ElementCompositionPreview.GetElementVisual(this).Compositor);
-            }
-
             _placeholderDelay = TimeSpan.FromMilliseconds(50);
             _surfaceBrush = _compositor.CreateSurfaceBrush(null);
         }
@@ -101,6 +98,11 @@ namespace SamplesCommon
                 {
                     _surface.Dispose();
                     _surfaceBrush.Surface = null;
+                }
+                else
+                {
+                    // No longer being managed
+                    ImageLoader.Instance.UnregisterSurface(_surface);
                 }
                 _surface = null;
             }
@@ -222,22 +224,34 @@ namespace SamplesCommon
 
         private void CompImage_Unloaded(object sender, RoutedEventArgs e)
         {
+            // The Unloaded event can be fired asynchronously, and can occur spuriously, while we are still connected into the tree.
+            // In that case, we don't want to unload our surface and visual because this will result in the displayed image
+            // not being displayed.   Since we don't actually reparent this control in any samples, we can detect the Unloaded event we 
+            // actually care about by checking our Parent for null - it will be null when the UI tree is being torn down, at which point 
+            // it is appropriate to actually free our resources.            
+
+            if (Parent != null)
+            {
+                return;
+            }
+
+
             _unloaded = true;
 
-            // TODO: Remove this workaround after 14332
-            //ReleaseSurface();
+            ReleaseSurface();
 
             if (_sprite != null)
             {
-                // TODO: Remove this workaround after 14332
-                // _sprite.Dispose();
+                ElementCompositionPreview.SetElementChildVisual(this, null);
+
+                _sprite.Dispose();
                 _sprite = null;
             }
         }
 
         private void UpdateBrush()
         {
-            _surfaceBrush.Surface = _surface;
+            _surfaceBrush.Surface = _surface == null ? null : _surface.Surface;
             _surfaceBrush.Stretch = _stretchMode;
 
             if (_sprite != null)
@@ -375,7 +389,7 @@ namespace SamplesCommon
                 }
 
                 // Load the image asynchronously
-                CompositionDrawingSurface surface = await SurfaceLoader.LoadFromUri(_uri, Size.Empty, _loadEffectDelegate);
+                ManagedSurface surface = await ImageLoader.Instance.LoadFromUriAsync(_uri, Size.Empty, _loadEffectDelegate);
 
                 if (_surface != null)
                 {
@@ -426,7 +440,7 @@ namespace SamplesCommon
                 {
                     ImageFailed(this, null);
                 }
-            }           
+            }
         }
 
         private void Timer_Tick(object sender, object e)
@@ -460,12 +474,11 @@ namespace SamplesCommon
             Visual loadingVisual = _sprite.Children.LastOrDefault();
             loadingVisual.StartAnimation("Opacity", _fadeOutAnimation);
 
-#if SDKVERSION_INSIDER
             Vector2 visualSize = _sprite.Size;
             _surfaceBrush.CenterPoint = new Vector2(visualSize.X *.5f, visualSize.Y * .5f);
 
             _surfaceBrush.StartAnimation("Scale", _scaleAnimation);
-#endif
+
             // End the batch after those animations complete
             batch.End();
         }
@@ -524,4 +537,4 @@ namespace SamplesCommon
             set { _placeholderDelay = value; }
         }
     }
-}
+    }

@@ -12,36 +12,124 @@
 //
 //*********************************************************
 
+using CompositionSampleGallery;
 using SamplesCommon;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using Windows.ApplicationModel.Core;
 using Windows.Foundation;
+using Windows.Foundation.Metadata;
 using Windows.UI;
-using Windows.UI.Composition;
+using Microsoft.UI;
+using Microsoft.UI.Composition;
+using Windows.UI.Core;
+using Windows.UI.Popups;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml;
 
 namespace CompositionSampleGallery
 {
     public sealed partial class MainPage : Page
     {
-        public MainPage(Rect imageBounds)
-        {
-            this.InitializeComponent();
+        private ManagedSurface                  _splashSurface;
+        private static CompositionCapabilities  _capabilities;
 
-            // Initialize the surface loader
-            SurfaceLoader.Initialize(ElementCompositionPreview.GetElementVisual(this).Compositor);
+        private static bool                     _areEffectsSupported = true;
+        private static bool                     _areEffectsFast = true;
+        private static RuntimeSupportedSDKs     _runtimeCapabilities;
+        private MainNavigationViewModel         _mainNavigation;        
+
+        public MainPage()
+        {
+            _runtimeCapabilities = new RuntimeSupportedSDKs();
+
+            // Get hardware capabilities and register changed event listener only when targeting the 
+            // appropriate SDK version and the runtime supports this version
+            if (_runtimeCapabilities.IsSdkVersionRuntimeSupported(RuntimeSupportedSDKs.SDKVERSION._15063))
+            {
+                _capabilities = new CompositionCapabilities();
+                _capabilities.Changed += HandleCapabilitiesChangedAsync;
+                _areEffectsSupported = _capabilities.AreEffectsSupported();
+                _areEffectsFast = _capabilities.AreEffectsFast();
+            }
+            else
+            {
+                _areEffectsSupported = true;
+                _areEffectsFast = true;
+            }
+            this.InitializeComponent();
+            _mainNavigation = new MainNavigationViewModel(GalleryUI);
+
+            // Initialize the image loader
+            ImageLoader.Initialize(ElementCompositionPreview.GetElementVisual(this).Compositor);
 
             // Show the custome splash screen
-            ShowCustomSplashScreen(imageBounds);
+            ShowCustomSplashScreen(MainWindow.CurrentWindow.Bounds);
         }
 
-        private async void ShowCustomSplashScreen(Rect imageBounds)
+        public MainNavigationViewModel MainNavigation => _mainNavigation;
+
+        public static bool AreEffectsSupported
+        {
+            get { return _areEffectsSupported; }
+        }
+
+        public static bool AreEffectsFast
+        {
+            get { return _areEffectsFast; }
+        }
+
+        public static RuntimeSupportedSDKs RuntimeCapabilities
+        {
+            get { return _runtimeCapabilities; }
+        }
+
+        private async void HandleCapabilitiesChangedAsync(CompositionCapabilities sender, object args)
+        {
+            _areEffectsSupported = _capabilities.AreEffectsSupported();
+            _areEffectsFast = _capabilities.AreEffectsFast();
+
+            GalleryUI.NotifyCompositionCapabilitiesChanged(_areEffectsSupported, _areEffectsFast);
+
+            SampleDefinitions.RefreshSampleList();
+
+
+            //
+            // Let the user know that the display config has changed and some samples may or may
+            // not be available
+            //
+
+            if (!_areEffectsSupported || !_areEffectsFast)
+            {
+                string message;
+
+                if (!_areEffectsSupported)
+                {
+                    message = "Your display configuration may have changed.  Your current graphics hardware does not support effects.  Some samples will not be available";
+                }
+                else
+                {
+                    message = "Your display configuration may have changed. Your current graphics hardware does not support advanced effects.  Some samples will not be available";
+                }
+
+                var messageDialog = new MessageDialog(message);
+                messageDialog.Commands.Add(new UICommand("Close"));
+
+                // Show the message dialog
+                await messageDialog.ShowAsync();
+            }
+        }
+
+        private void ShowCustomSplashScreen(Rect imageBounds)
         {
             Compositor compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
-            Vector2 windowSize = new Vector2((float)Window.Current.Bounds.Width, (float)Window.Current.Bounds.Height);
+            Vector2 windowSize = new Vector2((float)MainWindow.CurrentWindow.Bounds.Width, (float)MainWindow.CurrentWindow.Bounds.Height);
 
 
             //
@@ -61,7 +149,7 @@ namespace CompositionSampleGallery
 
             SpriteVisual backgroundSprite = compositor.CreateSpriteVisual();
             backgroundSprite.Size = windowSize;
-            backgroundSprite.Brush = compositor.CreateColorBrush(Color.FromArgb(1, 0, 178, 240));
+            backgroundSprite.Brush = compositor.CreateColorBrush(Color.FromArgb(255, 0, 188, 242));
             container.Children.InsertAtBottom(backgroundSprite);
 
 
@@ -70,9 +158,9 @@ namespace CompositionSampleGallery
             // exactly cover the Splash screen image so it will be a seamless transition between the two
             //
 
-            CompositionDrawingSurface surface = await SurfaceLoader.LoadFromUri(new Uri("ms-appx:///Assets/SplashScreen.png"));
+            _splashSurface = ImageLoader.Instance.LoadFromUri(new Uri("ms-appx:///Assets/StoreAssets/Wide.png"));
             SpriteVisual imageSprite = compositor.CreateSpriteVisual();
-            imageSprite.Brush = compositor.CreateSurfaceBrush(surface);
+            imageSprite.Brush = compositor.CreateSurfaceBrush(_splashSurface.Surface);
             imageSprite.Offset = new Vector3((float)imageBounds.X,(float)imageBounds.Y, 0f);
             imageSprite.Size = new Vector2((float)imageBounds.Width, (float)imageBounds.Height);
             container.Children.InsertAtTop(imageSprite);
@@ -81,7 +169,7 @@ namespace CompositionSampleGallery
         private void HideCustomSplashScreen()
         {
             ContainerVisual container = (ContainerVisual)ElementCompositionPreview.GetElementChildVisual(this);
-            Compositor compositor = container.Compositor; 
+            Compositor compositor = container.Compositor;
 
             // Setup some constants for scaling and animating
             const float ScaleFactor = 20f;
@@ -107,8 +195,8 @@ namespace CompositionSampleGallery
             scaleUpSplashAnimation.Duration = duration;
 
             // Configure the grid visual to scale from the center
-            Visual gridVisual = ElementCompositionPreview.GetElementVisual(MainFrame);
-            gridVisual.Size = new Vector2((float)MainFrame.ActualWidth, (float)MainFrame.ActualHeight);
+            Visual gridVisual = ElementCompositionPreview.GetElementVisual(GalleryUI);
+            gridVisual.Size = new Vector2((float)GalleryUI.ActualWidth, (float)GalleryUI.ActualHeight);
             gridVisual.CenterPoint = new Vector3(gridVisual.Size.X, gridVisual.Size.Y, 0) * .5f;
 
 
@@ -131,14 +219,93 @@ namespace CompositionSampleGallery
         {
             // Now that the animations are complete, dispose of the custom Splash Screen visuals
             ElementCompositionPreview.SetElementChildVisual(this, null);
+
+            if (_splashSurface != null)
+            {
+                _splashSurface.Dispose();
+                _splashSurface = null;
+            }
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            MainFrame.Navigate(typeof(HomePage));
-
             // Now that loading is complete, dismiss the custom splash screen
             HideCustomSplashScreen();
+        }
+    }
+
+    // This class caches and provides information about the supported 
+    // Windows.Foundation.UniversalApiContract of the runtime
+    public class RuntimeSupportedSDKs
+    {
+        List<SDKVERSION> _supportedSDKs;
+
+        public enum SDKVERSION
+        {
+            _10586 = 2,   // November Update (1511)
+            _14393,       // Anniversary Update (1607)
+            _15063,       // Creators Update (1703)
+            _16299,       // Fall Creators Update
+            _17134,       // Version 1803
+            _17763        // Version 1810
+        };
+
+        public RuntimeSupportedSDKs()
+        {
+            _supportedSDKs = new List<SDKVERSION>();
+
+            // Determine which versions of the SDK are supported on the runtime
+            foreach(SDKVERSION v in Enum.GetValues(typeof(SDKVERSION)))
+            {
+                if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", (ushort)Convert.ToInt32(v)))
+                {
+                    _supportedSDKs.Add(v);
+                }
+            }
+        }
+
+        public bool IsSdkVersionRuntimeSupported(SDKVERSION sdkVersion)
+        {
+            if(_supportedSDKs.Contains(sdkVersion))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public List<SDKVERSION> AllSupportedSdkVersions
+        {
+            get
+            {
+                return _supportedSDKs;
+            }
+        }
+    }
+
+    public class IsPaneOpenToVisibilityConverter : Microsoft.UI.Xaml.Data.IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter,
+              string language)
+        {
+            bool IsOpen = (bool)value;
+
+            if (IsOpen)
+            {
+                return Visibility.Visible;
+            }
+            else
+            {
+                return Visibility.Collapsed;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType,
+            object parameter, string language)
+        {
+            return null;
         }
     }
 }

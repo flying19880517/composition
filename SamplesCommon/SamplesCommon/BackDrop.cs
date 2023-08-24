@@ -1,10 +1,29 @@
-﻿using Microsoft.Graphics.Canvas.Effects;
+﻿//*********************************************************
+//
+// Copyright (c) Microsoft. All rights reserved.
+// This code is licensed under the MIT License (MIT).
+// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+// THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//*********************************************************
+
 using System;
+
 using Windows.UI;
-using Windows.UI.Composition;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Hosting;
+
+using Microsoft.UI;
+using Microsoft.UI.Composition;
+using Microsoft.UI.Composition.Effects;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
+
+using Microsoft.Graphics.Canvas.Effects;
 
 namespace SamplesCommon
 {
@@ -12,13 +31,11 @@ namespace SamplesCommon
     {
         Compositor m_compositor;
         SpriteVisual m_blurVisual;
-        CompositionBrush m_blurBrush;
+        CompositionEffectBrush m_blurBrush;
         Visual m_rootVisual;
 
-#if SDKVERSION_INSIDER
         bool m_setUpExpressions;
-        CompositionSurfaceBrush m_noiseBrush;
-#endif
+        ManagedSurface m_noiseSurface;
 
         public BackDrop()
         {
@@ -27,20 +44,14 @@ namespace SamplesCommon
 
             m_blurVisual = Compositor.CreateSpriteVisual();
 
-#if SDKVERSION_INSIDER
-            m_noiseBrush = Compositor.CreateSurfaceBrush();
-
             CompositionEffectBrush brush = BuildBlurBrush();
             brush.SetSourceParameter("source", m_compositor.CreateBackdropBrush());
             m_blurBrush = brush;
             m_blurVisual.Brush = m_blurBrush;
 
             BlurAmount = 9;
-            TintColor = Colors.Transparent;
-#else
-            m_blurBrush = Compositor.CreateColorBrush(Colors.White);
-            m_blurVisual.Brush = m_blurBrush;
-#endif
+            TintColor = Microsoft.UI.Colors.Transparent;
+
             ElementCompositionPreview.SetElementChildVisual(this as UIElement, m_blurVisual);
 
             this.Loading += OnLoading;
@@ -55,20 +66,18 @@ namespace SamplesCommon
             get
             {
                 float value = 0;
-#if SDKVERSION_INSIDER
+
                 m_rootVisual.Properties.TryGetScalar(BlurAmountProperty, out value);
-#endif
+
                 return value;
             }
             set
             {
-#if SDKVERSION_INSIDER
                 if (!m_setUpExpressions)
                 {
                     m_blurBrush.Properties.InsertScalar("Blur.BlurAmount", (float)value);
                 }
                 m_rootVisual.Properties.InsertScalar(BlurAmountProperty, (float)value);
-#endif
             }
         }
 
@@ -76,25 +85,19 @@ namespace SamplesCommon
         {
             get
             {
-                Color value;
-#if SDKVERSION_INSIDER
+                Color value = Microsoft.UI.Colors.Purple;
+
                 m_rootVisual.Properties.TryGetColor("TintColor", out value);
-#else
-                value = ((CompositionColorBrush)m_blurBrush).Color;
-#endif
+
                 return value;
             }
             set
             {
-#if SDKVERSION_INSIDER
                 if (!m_setUpExpressions)
                 {
                     m_blurBrush.Properties.InsertColor("Color.Color", value);
                 }
                 m_rootVisual.Properties.InsertColor(TintColorProperty, value);
-#else
-                ((CompositionColorBrush)m_blurBrush).Color = value;
-#endif
             }
         }
 
@@ -117,10 +120,9 @@ namespace SamplesCommon
             this.SizeChanged += OnSizeChanged;
             OnSizeChanged(this, null);
 
-#if SDKVERSION_INSIDER
-            m_noiseBrush.Surface = await SurfaceLoader.LoadFromUri(new Uri("ms-appx:///Assets/Noise.jpg"));
-            m_noiseBrush.Stretch = CompositionStretch.UniformToFill;
-#endif
+            m_noiseSurface = ImageLoader.Instance.LoadFromUri(new Uri("ms-appx:///Assets/Other/Noise.jpg"));
+            m_noiseSurface.Brush.Stretch = CompositionStretch.UniformToFill;
+            m_blurBrush.SetSourceParameter("NoiseImage", m_noiseSurface.Brush);
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -129,7 +131,7 @@ namespace SamplesCommon
         }
 
 
-        private void OnSizeChanged(object sender, Windows.UI.Xaml.SizeChangedEventArgs e)
+        private void OnSizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
         {
             if (m_blurVisual != null)
             {
@@ -137,7 +139,7 @@ namespace SamplesCommon
             }
         }
 
-#if SDKVERSION_INSIDER
+
         private void SetUpPropertySetExpressions()
         {
             m_setUpExpressions = true;
@@ -156,33 +158,33 @@ namespace SamplesCommon
 
         private CompositionEffectBrush BuildBlurBrush()
         {
-            GaussianBlurEffect blurEffect = new GaussianBlurEffect()
+            Microsoft.Graphics.Canvas.Effects.GaussianBlurEffect blurEffect = new Microsoft.Graphics.Canvas.Effects.GaussianBlurEffect()
             {
                 Name = "Blur",
                 BlurAmount = 0.0f,
-                BorderMode = EffectBorderMode.Hard,
-                Optimization = EffectOptimization.Balanced,
+                BorderMode = Microsoft.Graphics.Canvas.Effects.EffectBorderMode.Hard,
+                Optimization = Microsoft.Graphics.Canvas.Effects.EffectOptimization.Balanced,
                 Source = new CompositionEffectSourceParameter("source"),
             };
 
-            BlendEffect blendEffect = new BlendEffect
+            Microsoft.Graphics.Canvas.Effects.BlendEffect blendEffect = new Microsoft.Graphics.Canvas.Effects.BlendEffect
             {
                 Background = blurEffect,
-                Foreground = new ColorSourceEffect { Name = "Color", Color = Color.FromArgb(64, 255, 255, 255) },
-                Mode = BlendEffectMode.SoftLight
+                Foreground = new Microsoft.Graphics.Canvas.Effects.ColorSourceEffect { Name = "Color", Color = Color.FromArgb(64, 255, 255, 255) },
+                Mode = Microsoft.Graphics.Canvas.Effects.BlendEffectMode.SoftLight
             };
 
-            SaturationEffect saturationEffect = new SaturationEffect
+            Microsoft.Graphics.Canvas.Effects.SaturationEffect saturationEffect = new Microsoft.Graphics.Canvas.Effects.SaturationEffect
             {
                 Source = blendEffect,
                 Saturation = 1.75f,
             };
 
-            BlendEffect finalEffect = new BlendEffect
+            Microsoft.Graphics.Canvas.Effects.BlendEffect finalEffect = new Microsoft.Graphics.Canvas.Effects.BlendEffect
             {
                 Foreground = new CompositionEffectSourceParameter("NoiseImage"),
                 Background = saturationEffect,
-                Mode = BlendEffectMode.Screen,
+                Mode = Microsoft.Graphics.Canvas.Effects.BlendEffectMode.Screen,
             };
 
             var factory = Compositor.CreateEffectFactory(
@@ -190,9 +192,7 @@ namespace SamplesCommon
                 new[] { "Blur.BlurAmount", "Color.Color" }
                 );
 
-            CompositionEffectBrush brush = factory.CreateBrush();
-            brush.SetSourceParameter("NoiseImage", m_noiseBrush);
-            return brush;
+            return factory.CreateBrush();
         }
 
         public CompositionPropertySet VisualProperties
@@ -206,8 +206,6 @@ namespace SamplesCommon
                 return m_rootVisual.Properties;
             }
         }
-
-#endif
 
     }
 }

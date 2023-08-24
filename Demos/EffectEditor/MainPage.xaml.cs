@@ -13,6 +13,15 @@
 //
 //*********************************************************
 
+using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,17 +39,8 @@ using Windows.Foundation.Collections;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.UI;
-using Windows.UI.Composition;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Hosting;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 using SamplesCommon;
-using SamplesCommon.ImageLoader;
+using static SamplesCommon.ImageLoader;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -108,8 +108,7 @@ namespace EffectEditor
 
         private CompositionSurfaceBrush CreateBrushFromAsset(string name, out Size size)
         {
-            IImageLoader imageLoader = ImageLoaderFactory.CreateImageLoader(m_compositor);
-            CompositionDrawingSurface surface = imageLoader.LoadImageFromUri(new Uri("ms-appx:///Assets/" + name));
+            CompositionDrawingSurface surface = ImageLoader.Instance.LoadFromUri(new Uri("ms-appx:///Assets/" + name)).Surface;
             size = surface.Size;
             return m_compositor.CreateSurfaceBrush(surface);
         }
@@ -125,6 +124,8 @@ namespace EffectEditor
             m_compositor = ElementCompositionPreview.GetElementVisual(MainGrid).Compositor;
             m_root = m_compositor.CreateContainerVisual();
             ElementCompositionPreview.SetElementChildVisual(MainGrid, m_root);
+
+            ImageLoader.Initialize(m_compositor);
 
             Size imageSize;
             m_noEffectBrush = CreateBrushFromAsset(

@@ -1,53 +1,75 @@
-﻿using System;
-using System.Collections.Generic;
+﻿//*********************************************************
+//
+// Copyright (c) Microsoft. All rights reserved.
+// This code is licensed under the MIT License (MIT).
+// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+// THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//*********************************************************
+
+using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
 using Windows.Foundation;
-using Windows.UI.Composition;
 
-namespace SamplesCommon.ImageLoader
+using Microsoft.UI.Composition;
+
+namespace SamplesCommon
 {
-    public interface IManagedSurface : IDisposable
+    public class ManagedSurface
     {
-        IImageLoader ImageLoader { get; }
-        ICompositionSurface Surface { get; }
-        Uri Source { get; }
-        Size Size { get; }
-        IAsyncAction RedrawSurface();
-        IAsyncAction RedrawSurface(Uri uri);
-        IAsyncAction RedrawSurface(Uri uri, Size size);
-        void Resize(Size size);
-    }
+        private CompositionDrawingSurface   _surface;
+        private IContentDrawer               _drawer;
+        private CompositionSurfaceBrush     _brush;
 
-    class ManagedSurface : IManagedSurface
-    {
-        private IImageLoaderInternal _imageLoader;
-        private CompositionDrawingSurface _surface;
-        private Uri _uri;
-
-        public IImageLoader ImageLoader
+        public ManagedSurface(CompositionDrawingSurface surface)
         {
-            get
-            {
-                return _imageLoader;
-            }
+            Debug.Assert(surface != null);
+            _surface = surface;
+
+            ImageLoader.Instance.RegisterSurface(this);
         }
 
-        public ICompositionSurface Surface
+        public void Dispose()
         {
-            get
+            if (_surface != null)
             {
-                return _surface;
+                _surface.Dispose();
+                _surface = null;
             }
+
+            if (_brush != null)
+            {
+                _brush.Dispose();
+                _brush = null;
+            }
+
+            _drawer = null;
+
+            ImageLoader.Instance.UnregisterSurface(this);
         }
 
-        public Uri Source
+        public CompositionDrawingSurface Surface
+        {
+            get { return _surface; }
+        }
+
+        public CompositionSurfaceBrush Brush
         {
             get
             {
-                return _uri;
+                if (_brush == null)
+                {
+                    _brush = _surface.Compositor.CreateSurfaceBrush(_surface);
+                }
+
+                return _brush;
             }
         }
 
@@ -55,65 +77,27 @@ namespace SamplesCommon.ImageLoader
         {
             get
             {
-                if (_surface != null)
-                {
-                    return _surface.Size;
-                }
-                else
-                {
-                    return Size.Empty;
-                }
+                return (_surface != null) ? _surface.Size : Size.Empty;
             }
         }
-
-        public ManagedSurface(IImageLoaderInternal imageLoader, Uri uri, Size size)
+        
+        public async Task Draw(CompositionGraphicsDevice device, Object drawingLock, IContentDrawer drawer)
         {
-            _imageLoader = imageLoader;
-            _uri = uri;
-            _surface = _imageLoader.CreateSurface(size);
+            Debug.Assert(_surface != null);
 
-            _imageLoader.DeviceReplacedEvent += OnDeviceReplaced;
+            _drawer = drawer;
+            await _drawer.Draw(device, drawingLock, _surface, _surface.Size);
         }
 
-        private async void OnDeviceReplaced(object sender, object e)
+        public async void OnDeviceReplaced(object sender, object e)
         {
-            Debug.WriteLine("CompositionImageLoader - Redrawing ManagedSurface from Device Replaced");
-            await RedrawSurface();
+            DeviceReplacedEventArgs args = (DeviceReplacedEventArgs)e;
+            await ReloadContent(args.GraphicsDevce, args.DrawingLock);
         }
 
-        public IAsyncAction RedrawSurface()
+        private async Task ReloadContent(CompositionGraphicsDevice device, Object drawingLock)
         {
-            return RedrawSurfaceWorker(_uri, Size.Empty).AsAsyncAction();
-        }
-
-        public IAsyncAction RedrawSurface(Uri uri)
-        {
-            return RedrawSurfaceWorker(uri, Size.Empty).AsAsyncAction();
-        }
-
-        public IAsyncAction RedrawSurface(Uri uri, Size size)
-        {
-            return RedrawSurfaceWorker(uri, size).AsAsyncAction();
-        }
-
-        public void Resize(Size size)
-        {
-            _imageLoader.ResizeSurface(_surface, size);
-        }
-
-        private async Task RedrawSurfaceWorker(Uri uri, Size size)
-        {
-            _uri = uri;
-            await _imageLoader.DrawSurface(_surface, _uri, size);
-        }
-
-        public void Dispose()
-        {
-            _surface.Dispose();
-            _imageLoader.DeviceReplacedEvent -= OnDeviceReplaced;
-            _surface = null;
-            _imageLoader = null;
-            _uri = null;
+            await _drawer.Draw(device, drawingLock, _surface, _surface.Size);
         }
     }
 }

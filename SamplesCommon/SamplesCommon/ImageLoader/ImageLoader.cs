@@ -1,250 +1,217 @@
-﻿using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Canvas.UI.Composition;
+﻿//*********************************************************
+//
+// Copyright (c) Microsoft. All rights reserved.
+// This code is licensed under the MIT License (MIT).
+// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+// THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//*********************************************************
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
 using Windows.Foundation;
-using Windows.Foundation.Metadata;
 using Windows.Graphics.DirectX;
-using Windows.Graphics.Display;
-using Windows.UI.Composition;
+using Windows.UI;
 
-namespace SamplesCommon.ImageLoader
+using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.Text;
+using Microsoft.Graphics.Canvas.UI.Composition;
+using Microsoft.UI.Composition;
+
+#if SampleNative_TODO
+using SamplesNative;
+#endif
+
+using Windows.Storage;
+
+namespace SamplesCommon
 {
-    public interface IImageLoader : IDisposable
+    public class DeviceReplacedEventArgs : EventArgs
     {
-        event EventHandler<Object> DeviceReplacedEvent;
-        CompositionDrawingSurface LoadImageFromUri(Uri uri);
-        CompositionDrawingSurface LoadImageFromUri(Uri uri, Size size);
-        IAsyncOperation<CompositionDrawingSurface> LoadImageFromUriAsync(Uri uri);
-        IAsyncOperation<CompositionDrawingSurface> LoadImageFromUriAsync(Uri uri, Size size);
-        IManagedSurface CreateManagedSurfaceFromUri(Uri uri);
-        IManagedSurface CreateManagedSurfaceFromUri(Uri uri, Size size);
-        IAsyncOperation<IManagedSurface> CreateManagedSurfaceFromUriAsync(Uri uri);
-        IAsyncOperation<IManagedSurface> CreateManagedSurfaceFromUriAsync(Uri uri, Size size);
-    }
-
-    interface IImageLoaderInternal : IImageLoader
-    {
-        CompositionDrawingSurface CreateSurface(Size size);
-        void ResizeSurface(CompositionDrawingSurface surface, Size size);
-        Task DrawSurface(CompositionDrawingSurface surface, Uri uri, Size size);
-    }
-
-    public static class ImageLoaderFactory
-    {
-        [DefaultOverloadAttribute]
-        public static IImageLoader CreateImageLoader(Compositor compositor)
+        internal DeviceReplacedEventArgs(CompositionGraphicsDevice device, Object drawingLock)
         {
-            var imageLoader = new ImageLoader();
-            imageLoader.Initialize(compositor);
-            return imageLoader;
+            GraphicsDevce = device;
+            DrawingLock = drawingLock;
         }
 
-        public static IImageLoader CreateImageLoader(CompositionGraphicsDevice graphicsDevice)
-        {
-            var imageLoader = new ImageLoader();
-            imageLoader.Initialize(graphicsDevice);
-            return imageLoader;
-        }
+        public CompositionGraphicsDevice GraphicsDevce { get; set; }
+        public Object DrawingLock { get; set; }
     }
 
-    class ImageLoader : IImageLoaderInternal
+    public class ImageLoader
     {
-        public event EventHandler<Object> DeviceReplacedEvent;
+        private static bool                 _intialized;
+        private static ImageLoader          _imageLoader;
 
-        private Compositor _compositor;
-        private CanvasDevice _canvasDevice;
-        private CompositionGraphicsDevice _graphicsDevice;
-        private Object _drawingLock;
+#if SampleNative_TODO
+        private DeviceLostHelper            _deviceLostHelper;
+#endif
 
-        private bool _isDeviceCreator;
+        private Compositor                  _compositor;
+        private CanvasDevice                _canvasDevice;
+        private CompositionGraphicsDevice   _graphicsDevice;
+        private Object                      _drawingLock;
+        private event EventHandler<Object>  _deviceReplacedEvent;
 
-        public ImageLoader() { }
-
-        private void OnDisplayContentsInvalidated(DisplayInformation sender, object args)
+        public ImageLoader(Compositor compositor)
         {
-            Debug.WriteLine("CompositionImageLoader - Display Contents Invalidated");
-            //
-            // This will trigger the device lost event
-            //
-            CanvasDevice.GetSharedDevice();
-        }
+            Debug.Assert(compositor != null && _compositor == null);
 
-        public void Initialize(Compositor compositor)
-        {
             _compositor = compositor;
             _drawingLock = new object();
-            _isDeviceCreator = true;
-            DisplayInformation.DisplayContentsInvalidated += OnDisplayContentsInvalidated;
-            CreateDevice();
-        }
 
-        public void Initialize(CompositionGraphicsDevice graphicsDevice)
-        {
-            _graphicsDevice = graphicsDevice;
+#if SampleNative_TODO
+            _deviceLostHelper = new DeviceLostHelper();
+#endif
+
+            _canvasDevice = new CanvasDevice();
+#if !USING_CSWINRT  // TODO: Define IDirect3DDevice for Win32
+            _canvasDevice.DeviceLost += DeviceLost;
+#endif
+
+#if SampleNative_TODO
+            _deviceLostHelper.WatchDevice(_canvasDevice);
+            _deviceLostHelper.DeviceLost += DeviceRemoved;
+#endif
+
+            _graphicsDevice = (CompositionGraphicsDevice)CanvasComposition.CreateCompositionGraphicsDevice(_compositor, _canvasDevice);
             _graphicsDevice.RenderingDeviceReplaced += RenderingDeviceReplaced;
-            _drawingLock = new object();
-            _isDeviceCreator = false;
-            //
-            // We don't call CreateDevice, as it wouldn't do anything
-            // since we don't have a Compositor.
-            //
         }
 
-        private void CreateDevice()
+        public void Dispose()
         {
-            if (_compositor != null)
+            lock (_drawingLock)
             {
-                if (_canvasDevice == null)
+                _compositor = null;
+
+                if (_canvasDevice != null)
                 {
-                    _canvasDevice = CanvasDevice.GetSharedDevice();
-                    _canvasDevice.DeviceLost += DeviceLost;
+#if !USING_CSWINRT  // TODO: Define IDirect3DDevice for Win32
+                    _canvasDevice.DeviceLost -= DeviceLost;
+                    _canvasDevice.Dispose();
+#endif
+                    _canvasDevice = null;
                 }
 
-                if (_graphicsDevice == null)
+                if (_graphicsDevice != null)
                 {
-                    _graphicsDevice = CanvasComposition.CreateCompositionGraphicsDevice(_compositor, _canvasDevice);
-                    _graphicsDevice.RenderingDeviceReplaced += RenderingDeviceReplaced;
+                    _graphicsDevice.RenderingDeviceReplaced -= RenderingDeviceReplaced;
+                    _graphicsDevice.Dispose();
+                    _graphicsDevice = null;
                 }
             }
         }
 
-        private void DeviceLost(CanvasDevice sender, object args)
+        static public void Initialize(Compositor compositor)
         {
-            Debug.WriteLine("CompositionImageLoader - Canvas Device Lost");
-            sender.DeviceLost -= DeviceLost;
+            Debug.Assert(!_intialized);
 
-            _canvasDevice = CanvasDevice.GetSharedDevice();
-            _canvasDevice.DeviceLost += DeviceLost;
-
-            CanvasComposition.SetCanvasDevice(_graphicsDevice, _canvasDevice);
-        }
-
-        private void RenderingDeviceReplaced(CompositionGraphicsDevice sender, RenderingDeviceReplacedEventArgs args)
-        {
-            Debug.WriteLine("CompositionImageLoader - Rendering Device Replaced");
-            Task.Run(() =>
+            if (!_intialized)
             {
-                if (DeviceReplacedEvent != null)
-                {
-                    RaiseDeviceReplacedEvent();
-                }
-            });
+                _imageLoader = new ImageLoader(compositor);
+                _intialized = true;
+            }
         }
+
+        static public ImageLoader Instance
+        {
+            get
+            {
+                Debug.Assert(_intialized);
+                return _imageLoader;
+            }
+        }
+
+        public void RegisterSurface(ManagedSurface surface)
+        {
+            _deviceReplacedEvent += surface.OnDeviceReplaced;
+        }
+
+        public void UnregisterSurface(ManagedSurface surface)
+        {
+            _deviceReplacedEvent -= surface.OnDeviceReplaced;
+        }
+
 
         private void RaiseDeviceReplacedEvent()
         {
-            var deviceEvent = DeviceReplacedEvent;
-            if (deviceEvent != null)
-            {
-                deviceEvent(this, new EventArgs());
-            }
+            _deviceReplacedEvent?.Invoke(this, new DeviceReplacedEventArgs(_graphicsDevice, _drawingLock));
+        }
+        
+        public ManagedSurface LoadFromUri(Uri uri)
+        {
+            return LoadFromUri(uri, Size.Empty);
         }
 
-        public CompositionDrawingSurface LoadImageFromUri(Uri uri)
+        public ManagedSurface LoadFromUri(Uri uri, Size size)
         {
-            return LoadImageFromUri(uri, Size.Empty);
+            return LoadFromUri(uri, size, null);
         }
 
-        public CompositionDrawingSurface LoadImageFromUri(Uri uri, Size size)
+        public ManagedSurface LoadFromUri(Uri uri, Size size, LoadTimeEffectHandler handler)
         {
-            var surface = CreateSurface(size);
-
-            //
-            // We don't await this call, as we don't want to block
-            // the caller.
-            //
-            var ignored = DrawSurface(surface, uri, size);
+            ManagedSurface surface = new ManagedSurface(CreateSurface(size));
+            var ignored = surface.Draw(_graphicsDevice, _drawingLock, new BitmapDrawer(uri, handler));
 
             return surface;
         }
 
-        private async Task<CompositionDrawingSurface> LoadImageFromUriAsyncWorker(Uri uri, Size size)
+        public ManagedSurface LoadFromFile(StorageFile file, Size size, LoadTimeEffectHandler handler)
         {
-            var surface = CreateSurface(size);
+            ManagedSurface surface = new ManagedSurface(CreateSurface(size));
 
-            await DrawSurface(surface, uri , size);
+            var ignored = surface.Draw(_graphicsDevice, _drawingLock, new BitmapDrawer(file, handler));
 
             return surface;
         }
 
-        public IAsyncOperation<CompositionDrawingSurface> LoadImageFromUriAsync(Uri uri)
+        public IAsyncOperation<ManagedSurface> LoadFromUriAsync(Uri uri)
         {
-            return LoadImageFromUriAsync(uri, Size.Empty);
-        }
-        public IAsyncOperation<CompositionDrawingSurface> LoadImageFromUriAsync(Uri uri, Size size)
-        {
-            return LoadImageFromUriAsyncWorker(uri, size).AsAsyncOperation<CompositionDrawingSurface>();
+            return LoadFromUriAsyncWorker(uri, Size.Empty, null).AsAsyncOperation<ManagedSurface>();
         }
 
-        public IManagedSurface CreateManagedSurfaceFromUri(Uri uri)
+        public IAsyncOperation<ManagedSurface> LoadFromUriAsync(Uri uri, Size size)
         {
-            return CreateManagedSurfaceFromUri(uri, Size.Empty);
+            return LoadFromUriAsyncWorker(uri, size, null).AsAsyncOperation<ManagedSurface>();
         }
 
-        public IManagedSurface CreateManagedSurfaceFromUri(Uri uri, Size size)
+        public IAsyncOperation<ManagedSurface> LoadFromUriAsync(Uri uri, Size size, LoadTimeEffectHandler handler)
         {
-            var managedSurface = new ManagedSurface(this, uri, size);
-            var ignored = managedSurface.RedrawSurface();
-
-            return managedSurface;
+            return LoadFromUriAsyncWorker(uri, size, handler).AsAsyncOperation<ManagedSurface>();
         }
 
-        public async Task<IManagedSurface> CreateManagedSurfaceFromUriAsyncWorker(Uri uri, Size size)
+        public ManagedSurface LoadCircle(float radius, Color color)
         {
-            var managedSurface = new ManagedSurface(this, uri, size);
-            await managedSurface.RedrawSurface();
+            ManagedSurface surface = new ManagedSurface(CreateSurface(new Size(radius * 2, radius * 2)));
+            var ignored = surface.Draw(_graphicsDevice, _drawingLock, new CircleDrawer(radius, color));
 
-            return managedSurface;
+            return surface;
         }
 
-        public IAsyncOperation<IManagedSurface> CreateManagedSurfaceFromUriAsync(Uri uri)
+        public ManagedSurface LoadText(string text, Size size, CanvasTextFormat textFormat, Color textColor, Color bgColor)
         {
-            return CreateManagedSurfaceFromUriAsyncWorker(uri, Size.Empty).AsAsyncOperation<IManagedSurface>();
+            ManagedSurface surface = new ManagedSurface(CreateSurface(size));
+            var ignored = surface.Draw(_graphicsDevice, _drawingLock, new TextDrawer(text, textFormat, textColor, bgColor));
+
+            return surface;
         }
 
-        public IAsyncOperation<IManagedSurface> CreateManagedSurfaceFromUriAsync(Uri uri, Size size)
+        private async Task<ManagedSurface> LoadFromUriAsyncWorker(Uri uri, Size size, LoadTimeEffectHandler handler)
         {
-            return CreateManagedSurfaceFromUriAsyncWorker(uri, size).AsAsyncOperation<IManagedSurface>();
+            ManagedSurface surface = new ManagedSurface(CreateSurface(size));
+            await surface.Draw(_graphicsDevice, _drawingLock, new BitmapDrawer(uri, handler));
+
+            return surface;
         }
 
-        public async Task DrawSurface(CompositionDrawingSurface surface, Uri uri, Size size)
-        {
-            var canvasDevice = CanvasComposition.GetCanvasDevice(_graphicsDevice);
-            using (var canvasBitmap = await CanvasBitmap.LoadAsync(canvasDevice, uri))
-            {
-                var bitmapSize = canvasBitmap.Size;
-
-                //
-                // Because the drawing is done asynchronously and multiple threads could
-                // be trying to get access to the device/surface at the same time, we need
-                // to do any device/surface work under a lock.
-                //
-                lock (_drawingLock)
-                {
-                    Size surfaceSize = size;
-                    if (surfaceSize.IsEmpty)
-                    {
-                        // Resize the surface to the size of the image
-                        CanvasComposition.Resize(surface, bitmapSize);
-                        surfaceSize = bitmapSize;
-                    }
-                    
-                    // Draw the image to the surface
-                    using (var session = CanvasComposition.CreateDrawingSession(surface))
-                    {
-                        session.Clear(Windows.UI.Color.FromArgb(0, 0, 0, 0));
-                        session.DrawImage(canvasBitmap, new Rect(0, 0, surfaceSize.Width, surfaceSize.Height), new Rect(0, 0, bitmapSize.Width, bitmapSize.Height));
-                    }
-                }
-            }
-        }
-
-        public CompositionDrawingSurface CreateSurface(Size size)
+        private CompositionDrawingSurface CreateSurface(Size size)
         {
             Size surfaceSize = size;
             if (surfaceSize.IsEmpty)
@@ -253,58 +220,48 @@ namespace SamplesCommon.ImageLoader
                 // We start out with a size of 0,0 for the surface, because we don't know
                 // the size of the image at this time. We resize the surface later.
                 //
-                surfaceSize = new Size(0, 0);
+                surfaceSize = default(Size);
             }
 
-            var surface = _graphicsDevice.CreateDrawingSurface(surfaceSize, DirectXPixelFormat.B8G8R8A8UIntNormalized, DirectXAlphaMode.Premultiplied);
+            var surface = _graphicsDevice.CreateDrawingSurface(surfaceSize, Microsoft.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized, Microsoft.Graphics.DirectX.DirectXAlphaMode.Premultiplied);
 
             return surface;
         }
 
-        public void ResizeSurface(CompositionDrawingSurface surface, Size size)
+#if SampleNative_TODO
+        private void DeviceRemoved(DeviceLostHelper sender, object args)
         {
-            if (!size.IsEmpty)
-            {
-                lock(_drawingLock)
-                {
-                    CanvasComposition.Resize(surface, size);
-                }
-            }
+            _canvasDevice.RaiseDeviceLost();
+        }
+#endif
+
+        private void DeviceLost(CanvasDevice sender, object args)
+        {
+#if !USING_CSWINRT  // TODO: Define IDirect3DDevice for Win32
+            sender.DeviceLost -= DeviceLost;
+#endif
+
+            _canvasDevice = new CanvasDevice();
+#if !USING_CSWINRT  // TODO: Define IDirect3DDevice for Win32
+            _canvasDevice.DeviceLost += DeviceLost;
+#endif
+
+#if SampleNative_TODO
+            _deviceLostHelper.WatchDevice(_canvasDevice);
+#endif
+
+            CanvasComposition.SetCanvasDevice(_graphicsDevice, _canvasDevice);
         }
 
-        public void Dispose()
+        private void RenderingDeviceReplaced(CompositionGraphicsDevice sender, RenderingDeviceReplacedEventArgs args)
         {
-            lock (_drawingLock)
+            Task.Run(() =>
             {
-                _compositor = null;
-                DisplayInformation.DisplayContentsInvalidated -= OnDisplayContentsInvalidated;
-
-                if (_canvasDevice != null)
+                if (_deviceReplacedEvent != null)
                 {
-                    _canvasDevice.DeviceLost -= DeviceLost;
-                    //
-                    // Only dispose the canvas device if we own the device.
-                    //
-                    if (_isDeviceCreator)
-                    {
-                        _canvasDevice.Dispose();
-                    }
-                    _canvasDevice = null;
+                    RaiseDeviceReplacedEvent();
                 }
-
-                if (_graphicsDevice != null)
-                {
-                    _graphicsDevice.RenderingDeviceReplaced -= RenderingDeviceReplaced;
-                    //
-                    // Only dispose the composition graphics device if we own the device.
-                    //
-                    if (_isDeviceCreator)
-                    {
-                        _graphicsDevice.Dispose();
-                    }
-                    _graphicsDevice = null;
-                }
-            }
+            });
         }
     }
 }
